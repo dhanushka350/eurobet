@@ -1,14 +1,36 @@
 package com.akvasoft.eurobet.config;
 
+import com.akvasoft.eurobet.modals.*;
+import com.akvasoft.eurobet.modals.Match;
+import com.akvasoft.eurobet.repo.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-public class Scrape {
+@RestController
+public class Scrape implements InitializingBean {
+
+    @Autowired
+    private com.akvasoft.eurobet.repo.Match matchRepo;
+    @Autowired
+    private TTMatchRepo ttMatchRepo;
+    @Autowired
+    private TTHandicapRepo ttHandicapRepo;
+    @Autowired
+    private TPTI55Repo tpti55Repo;
+    @Autowired
+    private TempiRegolamRepo tempiRegolamRepo;
+    @Autowired
+    private SupplementariRepo supplementariRepo;
+    @Autowired
+    private TTUOInclSupplRepo ttuoInclSupplRepo;
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -78,6 +100,24 @@ public class Scrape {
 
     private void scrapeInnerTables(FirefoxDriver driver) throws InterruptedException {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
+        Match matchModal = null;
+        TTMatch ttMatch = null;
+        TTHandicap ttHandicap = null;
+        TPTI55 tpti55 = null;
+        TempiRegolam tempiRegolam = null;
+        Supplementari supplementari = null;
+        TTUOInclSuppl ttuoInclSuppl = null;
+
+        WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
+        String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText");
+        String date = match.findElement(By.className("date-time")).getAttribute("innerText");
+
+        matchModal = new Match();
+        matchModal.setDate(date);
+        matchModal.setName(matchTitle);
+        matchModal = matchRepo.save(matchModal);
+
+
         WebElement type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
                 .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
         for (WebElement ul : type.findElement(By.tagName("ul")).findElements(By.xpath("./*"))) {
@@ -98,6 +138,12 @@ public class Scrape {
                             String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(value_1);
                             System.err.println(value_2);
+
+                            ttMatch = new TTMatch();
+                            ttMatch.setMatch(matchModal);
+                            ttMatch.setOne(value_1);
+                            ttMatch.setTwo(value_2);
+                            ttMatchRepo.save(ttMatch);
                         }
 
 
@@ -115,6 +161,12 @@ public class Scrape {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+                            ttHandicap = new TTHandicap();
+                            ttHandicap.setMatch(matchModal);
+                            ttHandicap.setName(value_1);
+                            ttHandicap.setOne(value_2);
+                            ttHandicap.setTwo(value_3);
+                            ttHandicapRepo.save(ttHandicap);
                         }
 
                     }
@@ -131,6 +183,13 @@ public class Scrape {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            tpti55 = new TPTI55();
+                            tpti55.setMatch(matchModal);
+                            tpti55.setOne(value_1);
+                            tpti55.setMultiple(value_2);
+                            tpti55.setTwo(value_3);
+                            tpti55Repo.save(tpti55);
                         }
 
                     }
@@ -147,6 +206,13 @@ public class Scrape {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            tempiRegolam = new TempiRegolam();
+                            tempiRegolam.setMatch(matchModal);
+                            tempiRegolam.setOne(value_1);
+                            tempiRegolam.setMultiple(value_2);
+                            tempiRegolam.setTwo(value_3);
+                            tempiRegolamRepo.save(tempiRegolam);
                         }
 
                     }
@@ -161,6 +227,12 @@ public class Scrape {
                             String no = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(sl);
                             System.err.println(no);
+
+                            supplementari = new Supplementari();
+                            supplementari.setMatch(matchModal);
+                            supplementari.setSl(sl);
+                            supplementari.setNo(no);
+                            supplementariRepo.save(supplementari);
 
                         }
 
@@ -183,6 +255,14 @@ public class Scrape {
                             System.err.println(team_2_under);
                             System.err.println(team_2_over);
 
+                            ttuoInclSuppl = new TTUOInclSuppl();
+                            ttuoInclSuppl.setMatch(matchModal);
+                            ttuoInclSuppl.setName(value_1);
+                            ttuoInclSuppl.setTeamOneUnder(team_1_under);
+                            ttuoInclSuppl.setTeamOneOver(team_1_over);
+                            ttuoInclSuppl.setTeamTwoUnder(team_2_under);
+                            ttuoInclSuppl.setTeamTwoOver(team_2_over);
+                            ttuoInclSupplRepo.save(ttuoInclSuppl);
 
                         }
 
@@ -460,22 +540,22 @@ public class Scrape {
 
                     }
 
-//                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
-//                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-//                                .findElement(By.tagName("div"))
-//                                .findElements(By.xpath("./*"));
-//
-//                        System.out.println("================ quarto con punt. piu' alto");
-//                        for (WebElement row : valueSet) {
-//                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-//                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-//                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-//                            System.err.println(value_1);
-//                            System.err.println(value_2);
-//                            System.err.println(value_3);
-//                        }
-//
-//                    }
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ quarto con punt. piu' alto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
@@ -741,5 +821,10 @@ public class Scrape {
             }
         }
 
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+//        this.scrapeOld();
     }
 }
