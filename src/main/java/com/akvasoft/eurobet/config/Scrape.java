@@ -76,7 +76,7 @@ public class Scrape {
 
     }
 
-    private void scrapeInnerTables(FirefoxDriver driver) {
+    private void scrapeInnerTables(FirefoxDriver driver) throws InterruptedException {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         WebElement type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
                 .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
@@ -84,6 +84,659 @@ public class Scrape {
             if (ul.getAttribute("innerText").equalsIgnoreCase("TUTTE")) {
                 jse.executeScript("arguments[0].scrollIntoView(true);", ul);
                 jse.executeScript("arguments[0].click();", ul);
+                Thread.sleep(1000);
+
+                for (WebElement table : driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"))) {
+
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t match")) {
+                        WebElement valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"));
+                        System.out.println("================ t/t match");
+                        for (WebElement row : valueSet.findElements(By.xpath("./*"))) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                        }
+
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 (5.5 pti)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 (5.5 pti)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 tempi regolam.")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 tempi regolam.");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("supplementari?")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+
+                        System.out.println("================ supplementari?");
+                        for (WebElement row : valueSet) {
+                            String sl = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String no = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(sl);
+                            System.err.println(no);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("T/T + U/O ( incl. suppl.)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+
+                        System.out.println("================ T/T + U/O ( incl. suppl.)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String team_1_under = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String team_1_over = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            String team_2_under = row.findElements(By.xpath("./*")).get(3).findElement(By.tagName("a")).getAttribute("innerText");
+                            String team_2_over = row.findElements(By.xpath("./*")).get(4).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(team_1_under);
+                            System.err.println(team_1_over);
+                            System.err.println(team_2_under);
+                            System.err.println(team_2_over);
+
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o (incl.suppl.)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o (incl.suppl.)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String under = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String over = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+
+                            System.err.println(value_1);
+                            System.err.println(under);
+                            System.err.println(over);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O totale punti")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ U/O totale punti");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String under = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String over = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            String ESATTAMENTE = row.findElements(By.xpath("./*")).get(3).findElement(By.tagName("a")).getAttribute("innerText");
+
+                            System.err.println(value_1);
+                            System.err.println(under);
+                            System.err.println(over);
+                            System.err.println(ESATTAMENTE);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari (incl.suppl.)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari (incl.suppl.)");
+                        for (WebElement row : valueSet) {
+                            String PARI = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String DISPARI = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(PARI);
+                            System.err.println(DISPARI);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 1T");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 1T (senza margine)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 1T (senza margine)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 1T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 1T");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String under = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String over = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(under);
+                            System.err.println(over);
+
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 1T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 1T");
+                        for (WebElement row : valueSet) {
+                            String pari = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String dispari = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(pari);
+                            System.err.println(dispari);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 2T");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 2T (senza margine)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 2T (senza margine)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 2T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 2T");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String under = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String over = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(under);
+                            System.err.println(over);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 2T")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 2T");
+                        for (WebElement row : valueSet) {
+                            String PARI = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String DISPARI = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(PARI);
+                            System.err.println(DISPARI);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 1° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 1° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 2° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 2° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 3° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 3° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 4° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ u/o 4° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+//                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
+//                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+//                                .findElement(By.tagName("div"))
+//                                .findElements(By.xpath("./*"));
+//
+//                        System.out.println("================ quarto con punt. piu' alto");
+//                        for (WebElement row : valueSet) {
+//                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+//                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+//                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+//                            System.err.println(value_1);
+//                            System.err.println(value_2);
+//                            System.err.println(value_3);
+//                        }
+//
+//                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 1° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 1° quarto (senza margini)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 1° quarto (senza margini)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 1° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 1° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 2° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 2° quarto (senza margini)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 2° quarto (senza margini) ");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 2° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 2° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                        }
+
+                    }
+
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 3° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 3° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 3° quarto (senza margini)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 3° quarto (senza margini)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 3° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 3° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 4° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ t/t handicap 4° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 4° quarto (senza margini)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1X2 4° quarto (senza margini)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 4° quarto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ pari/dispari 4° quarto");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O casa (incl.suppl.)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ U/O casa (incl.suppl.)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O ospite (incl.suppl.)")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ U/O ospite (incl.suppl.)");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1° tempo/finale")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ 1° tempo/finale");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+                            System.err.println(value_3);
+                        }
+
+                    }
+                }
+
                 break;
             }
         }
