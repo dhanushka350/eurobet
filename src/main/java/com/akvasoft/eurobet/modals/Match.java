@@ -44,6 +44,10 @@ public class Match {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
     private List<TTUOInclSuppl> ttuoInclSuppls = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
+    private List<UOInclSuppl>  uoInclSuppls = new ArrayList<>();
+
 
     public int getId() {
         return id;

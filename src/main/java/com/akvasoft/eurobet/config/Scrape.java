@@ -31,6 +31,9 @@ public class Scrape implements InitializingBean {
     private SupplementariRepo supplementariRepo;
     @Autowired
     private TTUOInclSupplRepo ttuoInclSupplRepo;
+    @Autowired
+    private UOInclSupplRepo uoInclSupplRepo;
+
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -107,6 +110,7 @@ public class Scrape implements InitializingBean {
         TempiRegolam tempiRegolam = null;
         Supplementari supplementari = null;
         TTUOInclSuppl ttuoInclSuppl = null;
+        UOInclSuppl uoInclSuppl = null;
 
         WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
         String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText");
@@ -114,7 +118,7 @@ public class Scrape implements InitializingBean {
 
         matchModal = new Match();
         matchModal.setDate(date);
-        matchModal.setName(matchTitle);
+        matchModal.setName(matchTitle.replace(">",""));
         matchModal = matchRepo.save(matchModal);
 
 
@@ -281,6 +285,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(under);
                             System.err.println(over);
+
+                            uoInclSuppl = new UOInclSuppl();
+                            uoInclSuppl.setMatch(matchModal);
+                            uoInclSuppl.setName(value_1);
+                            uoInclSuppl.setUnder(under);
+                            uoInclSuppl.setOver(over);
+                            uoInclSupplRepo.save(uoInclSuppl);
 
                         }
 
@@ -825,6 +836,6 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-//        this.scrapeOld();
+        this.scrapeOld();
     }
 }
