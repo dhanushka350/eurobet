@@ -33,7 +33,62 @@ public class Scrape implements InitializingBean {
     private TTUOInclSupplRepo ttuoInclSupplRepo;
     @Autowired
     private UOInclSupplRepo uoInclSupplRepo;
-
+    @Autowired
+    private UOTotalPuntiRepo uoTotalPuntiRepo;
+    @Autowired
+    private PariDispariInclSupplRepo pariDispariInclSupplRepo;
+    @Autowired
+    private TTHandicap1TRepo ttHandicap1TRepo;
+    @Autowired
+    private SenzaMargine_12_1TRepo senzaMargine_12_1TRepo;
+    @Autowired
+    private UO1TRepo uo1TRepo;
+    @Autowired
+    private PariDispari1TRepo pariDispari1TRepo;
+    @Autowired
+    private TTHandicap2TRepo ttHandicap2TRepo;
+    @Autowired
+    private SenzaMargine_12_2TRepo senzaMargine_12_2TRepo;
+    @Autowired
+    private UO2TRepo uo2TRepo;
+    @Autowired
+    private PariDispari2TRepo pariDispari2TRepo;
+    @Autowired
+    private UOQuarto_1Repo uoQuarto_1Repo;
+    @Autowired
+    private UOQuarto_2Repo uoQuarto_2Repo;
+    @Autowired
+    private UOQuarto_3Repo uoQuarto_3Repo;
+    @Autowired
+    private UOQuarto_4Repo uoQuarto_4Repo;
+    @Autowired
+    private TTHandicap_1QuartoRepo ttHandicap_1QuartoRepo;
+    @Autowired
+    private SenzaMargine_12_1QuartoRepo senzaMargine_12_1QuartoRepo;
+    @Autowired
+    private PariDispari_1QuartoRepo pariDispari_1QuartoRepo;
+    @Autowired
+    private TTHandicap_2QuartoRepo ttHandicap_2QuartoRepo;
+    @Autowired
+    private SenzaMargine_12_2QuartoRepo senzaMargine_12_2QuartoRepo;
+    @Autowired
+    private PariDispari2QuartoRepo pariDispari2QuartoRepo;
+    @Autowired
+    private TTHandicap_3QuartoRepo ttHandicap_3QuartoRepo;
+    @Autowired
+    private SenzaMargine_12_3QuartoRepo senzaMargine_12_3QuartoRepo;
+    @Autowired
+    private PariDispari3QuartoRepo pariDispari3QuartoRepo;
+    @Autowired
+    private TTHandicap_4QuartoRepo ttHandicap_4QuartoRepo;
+    @Autowired
+    private SenzaMargine_12_4QuartoRepo senzaMargine_12_4QuartoRepo;
+    @Autowired
+    private PariDispari4QuartoRepo pariDispari4QuartoRepo;
+    @Autowired
+    private UOCaseInclSupplRepo uoCaseInclSupplRepo;
+    @Autowired
+    private UOOspiteInclSupplRepo uoOspiteInclSupplRepo;
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -71,7 +126,7 @@ public class Scrape implements InitializingBean {
                     jse.executeScript("arguments[0].click();", element.findElement(By.tagName("a")));
                     Thread.sleep(1000);
                     scrapeMainTable(driver);
-                    break;
+//                    break;
                 }
 
                 break;
@@ -86,6 +141,7 @@ public class Scrape implements InitializingBean {
         WebElement centerDiv = driver.findElementByClassName("main-content-wrapper");
         WebElement tables = centerDiv.findElement(By.className("baseAnimation"));
         for (WebElement table : tables.findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*"))) {
+
             System.out.println(table.findElement(By.className("box-title")).getAttribute("innerText"));
             for (WebElement element : table.findElement(By.className("anti-row")).findElements(By.xpath("./*"))) {
                 WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
@@ -93,7 +149,7 @@ public class Scrape implements InitializingBean {
                 jse.executeScript("arguments[0].click();", row.findElement(By.tagName("span")).findElement(By.tagName("a")));
                 Thread.sleep(1000);
                 scrapeInnerTables(driver);
-                break;
+//                break;
             }
 
             break;
@@ -101,7 +157,7 @@ public class Scrape implements InitializingBean {
 
     }
 
-    private void scrapeInnerTables(FirefoxDriver driver) throws InterruptedException {
+    private boolean scrapeInnerTables(FirefoxDriver driver) throws InterruptedException {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         Match matchModal = null;
         TTMatch ttMatch = null;
@@ -111,14 +167,46 @@ public class Scrape implements InitializingBean {
         Supplementari supplementari = null;
         TTUOInclSuppl ttuoInclSuppl = null;
         UOInclSuppl uoInclSuppl = null;
+        UOTotalPunti uoTotalPunti = null;
+        PariDispariInchSuppl pariDispariInchSuppl = null;
+        TTHandicap1T ttHandicap1T = null;
+        SenzaMargine_12_1T senzaMargine_12_1T = null;
+        UO1T uo1T = null;
+        PariDispari1T pariDispari1T = null;
+        TTHandicap2T ttHandicap2T = null;
+        SenzaMargine_12_2T senzaMargine_12_2T = null;
+        UO2T uo2T = null;
+        PariDispari2T pariDispari2T = null;
+        UOQuarto_1 uoQuarto_1 = null;
+        UOQuarto_2 uoQuarto_2 = null;
+        UOQuarto_3 uoQuarto_3 = null;
+        UOQuarto_4 uoQuarto_4 = null;
+        TTHandicap_1Quarto ttHandicap_1Quarto = null;
+        SenzaMargine_12_1Quarto senzaMargine_12_1Quarto = null;
+        PariDispari1Quarto pariDispari1Quarto = null;
+        TTHandicap2Quarto ttHandicap2Quarto = null;
+        SenzaMargine_12_2Quarto senzaMargine_12_2Quarto = null;
+        PariDispari2Quarto pariDispari2Quarto = null;
+        TTHandicap3Quarto ttHandicap3Quarto = null;
+        SenzaMargine_12_3Quarto senzaMargine_12_3Quarto = null;
+        PariDispari3Quarto pariDispari3Quarto = null;
+        TTHandicap4Quarto ttHandicap4Quarto = null;
+        SenzaMargine_12_4Quarto senzaMargine_12_4Quarto = null;
+        PariDispari4Quarto pariDispari4Quarto = null;
+        UOCaseInclSuppl uoCaseInclSuppl = null;
+        UOOspiteInclSuppl uoOspiteInclSuppl = null;
 
         WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
-        String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText");
+        String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").replace(">", " ").replace("\n", " ");
         String date = match.findElement(By.className("date-time")).getAttribute("innerText");
 
+        if (matchRepo.findTopByDateEqualsAndNameEquals(date, matchTitle) != null) {
+            driver.navigate().back();
+            return true;
+        }
         matchModal = new Match();
         matchModal.setDate(date);
-        matchModal.setName(matchTitle.replace(">",""));
+        matchModal.setName(matchTitle);
         matchModal = matchRepo.save(matchModal);
 
 
@@ -315,6 +403,14 @@ public class Scrape implements InitializingBean {
                             System.err.println(over);
                             System.err.println(ESATTAMENTE);
 
+                            uoTotalPunti = new UOTotalPunti();
+                            uoTotalPunti.setMatch(matchModal);
+                            uoTotalPunti.setName(value_1);
+                            uoTotalPunti.setUnder(under);
+                            uoTotalPunti.setOver(over);
+                            uoTotalPunti.setEsattamente(ESATTAMENTE);
+                            uoTotalPuntiRepo.save(uoTotalPunti);
+
                         }
 
                     }
@@ -331,6 +427,12 @@ public class Scrape implements InitializingBean {
                             String DISPARI = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(PARI);
                             System.err.println(DISPARI);
+
+                            pariDispariInchSuppl = new PariDispariInchSuppl();
+                            pariDispariInchSuppl.setMatch(matchModal);
+                            pariDispariInchSuppl.setPari(PARI);
+                            pariDispariInchSuppl.setDispari(DISPARI);
+                            pariDispariInclSupplRepo.save(pariDispariInchSuppl);
 
                         }
 
@@ -351,6 +453,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_2);
                             System.err.println(value_3);
 
+                            ttHandicap1T = new TTHandicap1T();
+                            ttHandicap1T.setMatch(matchModal);
+                            ttHandicap1T.setName(value_1);
+                            ttHandicap1T.setOne(value_2);
+                            ttHandicap1T.setTwo(value_2);
+                            ttHandicap1TRepo.save(ttHandicap1T);
+
                         }
 
                     }
@@ -369,6 +478,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_1T = new SenzaMargine_12_1T();
+                            senzaMargine_12_1T.setMatch(matchModal);
+                            senzaMargine_12_1T.setOne(value_1);
+                            senzaMargine_12_1T.setMulti(value_2);
+                            senzaMargine_12_1T.setTwo(value_3);
+                            senzaMargine_12_1TRepo.save(senzaMargine_12_1T);
 
                         }
 
@@ -389,6 +505,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(under);
                             System.err.println(over);
 
+                            uo1T = new UO1T();
+                            uo1T.setMatch(matchModal);
+                            uo1T.setName(value_1);
+                            uo1T.setUnder(under);
+                            uo1T.setOver(over);
+                            uo1TRepo.save(uo1T);
+
                         }
 
                     }
@@ -405,6 +528,12 @@ public class Scrape implements InitializingBean {
                             String dispari = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(pari);
                             System.err.println(dispari);
+
+                            pariDispari1T = new PariDispari1T();
+                            pariDispari1T.setMatch(matchModal);
+                            pariDispari1T.setPari(pari);
+                            pariDispari1T.setDispari(dispari);
+                            pariDispari1TRepo.save(pariDispari1T);
                         }
 
                     }
@@ -423,6 +552,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            ttHandicap2T = new TTHandicap2T();
+                            ttHandicap2T.setMatch(matchModal);
+                            ttHandicap2T.setName(value_1);
+                            ttHandicap2T.setOne(value_2);
+                            ttHandicap2T.setTwo(value_3);
+                            ttHandicap2TRepo.save(ttHandicap2T);
                         }
 
                     }
@@ -441,6 +577,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_2T = new SenzaMargine_12_2T();
+                            senzaMargine_12_2T.setMatch(matchModal);
+                            senzaMargine_12_2T.setOne(value_1);
+                            senzaMargine_12_2T.setMulti(value_2);
+                            senzaMargine_12_2T.setTwo(value_3);
+                            senzaMargine_12_2TRepo.save(senzaMargine_12_2T);
                         }
 
                     }
@@ -459,6 +602,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(under);
                             System.err.println(over);
+
+                            uo2T = new UO2T();
+                            uo2T.setMatch(matchModal);
+                            uo2T.setName(value_1);
+                            uo2T.setOver(over);
+                            uo2T.setUnder(under);
+                            uo2TRepo.save(uo2T);
                         }
 
                     }
@@ -475,6 +625,12 @@ public class Scrape implements InitializingBean {
                             String DISPARI = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(PARI);
                             System.err.println(DISPARI);
+
+                            pariDispari2T = new PariDispari2T();
+                            pariDispari2T.setMatch(matchModal);
+                            pariDispari2T.setPari(PARI);
+                            pariDispari2T.setDispari(DISPARI);
+                            pariDispari2TRepo.save(pariDispari2T);
                         }
 
                     }
@@ -493,6 +649,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoQuarto_1 = new UOQuarto_1();
+                            uoQuarto_1.setMatch(matchModal);
+                            uoQuarto_1.setName(value_1);
+                            uoQuarto_1.setUnder(value_2);
+                            uoQuarto_1.setOver(value_3);
+                            uoQuarto_1Repo.save(uoQuarto_1);
                         }
 
                     }
@@ -511,6 +674,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoQuarto_2 = new UOQuarto_2();
+                            uoQuarto_2.setMatch(matchModal);
+                            uoQuarto_2.setName(value_1);
+                            uoQuarto_2.setUnder(value_2);
+                            uoQuarto_2.setOver(value_3);
+                            uoQuarto_2Repo.save(uoQuarto_2);
                         }
 
                     }
@@ -529,6 +699,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoQuarto_3 = new UOQuarto_3();
+                            uoQuarto_3.setMatch(matchModal);
+                            uoQuarto_3.setName(value_1);
+                            uoQuarto_3.setUnder(value_2);
+                            uoQuarto_3.setOver(value_3);
+                            uoQuarto_3Repo.save(uoQuarto_3);
                         }
 
                     }
@@ -547,26 +724,33 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoQuarto_4 = new UOQuarto_4();
+                            uoQuarto_4.setMatch(matchModal);
+                            uoQuarto_4.setName(value_1);
+                            uoQuarto_4.setUnder(value_2);
+                            uoQuarto_4.setOver(value_3);
+                            uoQuarto_4Repo.save(uoQuarto_4);
                         }
 
                     }
 
-                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
-
-                        System.out.println("================ quarto con punt. piu' alto");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
-                        }
-
-                    }
+//                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
+//                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+//                                .findElement(By.tagName("div"))
+//                                .findElements(By.xpath("./*"));
+//
+//                        System.out.println("================ quarto con punt. piu' alto");
+//                        for (WebElement row : valueSet) {
+//                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+//                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+//                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+//                            System.err.println(value_1);
+//                            System.err.println(value_2);
+//                            System.err.println(value_3);
+//                        }
+//
+//                    }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
@@ -582,6 +766,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            ttHandicap_1Quarto = new TTHandicap_1Quarto();
+                            ttHandicap_1Quarto.setMatch(matchModal);
+                            ttHandicap_1Quarto.setName(value_1);
+                            ttHandicap_1Quarto.setOne(value_2);
+                            ttHandicap_1Quarto.setTwo(value_3);
+                            ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
                         }
 
                     }
@@ -600,6 +791,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_1Quarto = new SenzaMargine_12_1Quarto();
+                            senzaMargine_12_1Quarto.setMatch(matchModal);
+                            senzaMargine_12_1Quarto.setOne(value_1);
+                            senzaMargine_12_1Quarto.setMulti(value_2);
+                            senzaMargine_12_1Quarto.setTwo(value_3);
+                            senzaMargine_12_1QuartoRepo.save(senzaMargine_12_1Quarto);
                         }
 
                     }
@@ -616,6 +814,12 @@ public class Scrape implements InitializingBean {
                             String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(value_1);
                             System.err.println(value_2);
+
+                            pariDispari1Quarto = new PariDispari1Quarto();
+                            pariDispari1Quarto.setMatch(matchModal);
+                            pariDispari1Quarto.setPari(value_1);
+                            pariDispari1Quarto.setDispari(value_2);
+                            pariDispari_1QuartoRepo.save(pariDispari1Quarto);
                         }
 
                     }
@@ -634,6 +838,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            ttHandicap2Quarto = new TTHandicap2Quarto();
+                            ttHandicap2Quarto.setMatch(matchModal);
+                            ttHandicap2Quarto.setName(value_1);
+                            ttHandicap2Quarto.setOne(value_2);
+                            ttHandicap2Quarto.setTwo(value_3);
+                            ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
                         }
 
                     }
@@ -652,6 +863,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_2Quarto = new SenzaMargine_12_2Quarto();
+                            senzaMargine_12_2Quarto.setMatch(matchModal);
+                            senzaMargine_12_2Quarto.setOne(value_1);
+                            senzaMargine_12_2Quarto.setMulti(value_2);
+                            senzaMargine_12_2Quarto.setTwo(value_3);
+                            senzaMargine_12_2QuartoRepo.save(senzaMargine_12_2Quarto);
                         }
 
                     }
@@ -668,6 +886,12 @@ public class Scrape implements InitializingBean {
                             String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(value_1);
                             System.err.println(value_2);
+
+                            pariDispari2Quarto = new PariDispari2Quarto();
+                            pariDispari2Quarto.setMatch(matchModal);
+                            pariDispari2Quarto.setPari(value_1);
+                            pariDispari2Quarto.setDispari(value_2);
+                            pariDispari2QuartoRepo.save(pariDispari2Quarto);
                         }
 
                     }
@@ -687,6 +911,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            ttHandicap3Quarto = new TTHandicap3Quarto();
+                            ttHandicap3Quarto.setName(value_1);
+                            ttHandicap3Quarto.setOne(value_2);
+                            ttHandicap3Quarto.setTwo(value_3);
+                            ttHandicap3Quarto.setMatch(matchModal);
+                            ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
                         }
 
                     }
@@ -705,6 +936,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_3Quarto = new SenzaMargine_12_3Quarto();
+                            senzaMargine_12_3Quarto.setMatch(matchModal);
+                            senzaMargine_12_3Quarto.setOne(value_1);
+                            senzaMargine_12_3Quarto.setMulti(value_2);
+                            senzaMargine_12_3Quarto.setTwo(value_3);
+                            senzaMargine_12_3QuartoRepo.save(senzaMargine_12_3Quarto);
                         }
 
                     }
@@ -721,6 +959,12 @@ public class Scrape implements InitializingBean {
                             String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(value_1);
                             System.err.println(value_2);
+
+                            pariDispari3Quarto = new PariDispari3Quarto();
+                            pariDispari3Quarto.setMatch(matchModal);
+                            pariDispari3Quarto.setPari(value_1);
+                            pariDispari3Quarto.setDispari(value_2);
+                            pariDispari3QuartoRepo.save(pariDispari3Quarto);
                         }
 
                     }
@@ -739,6 +983,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            ttHandicap4Quarto = new TTHandicap4Quarto();
+                            ttHandicap4Quarto.setMatch(matchModal);
+                            ttHandicap4Quarto.setName(value_1);
+                            ttHandicap4Quarto.setOne(value_2);
+                            ttHandicap4Quarto.setTwo(value_3);
+                            ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
                         }
 
                     }
@@ -757,6 +1008,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            senzaMargine_12_4Quarto = new SenzaMargine_12_4Quarto();
+                            senzaMargine_12_4Quarto.setMatch(matchModal);
+                            senzaMargine_12_4Quarto.setOne(value_1);
+                            senzaMargine_12_4Quarto.setMulti(value_2);
+                            senzaMargine_12_4Quarto.setTwo(value_3);
+                            senzaMargine_12_4QuartoRepo.save(senzaMargine_12_4Quarto);
                         }
 
                     }
@@ -773,6 +1031,12 @@ public class Scrape implements InitializingBean {
                             String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
                             System.err.println(value_1);
                             System.err.println(value_2);
+
+                            pariDispari4Quarto = new PariDispari4Quarto();
+                            pariDispari4Quarto.setMatch(matchModal);
+                            pariDispari4Quarto.setPari(value_1);
+                            pariDispari4Quarto.setDispari(value_2);
+                            pariDispari4QuartoRepo.save(pariDispari4Quarto);
                         }
 
                     }
@@ -790,6 +1054,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoCaseInclSuppl = new UOCaseInclSuppl();
+                            uoCaseInclSuppl.setMatch(matchModal);
+                            uoCaseInclSuppl.setName(value_1);
+                            uoCaseInclSuppl.setUnder(value_2);
+                            uoCaseInclSuppl.setOver(value_3);
+                            uoCaseInclSupplRepo.save(uoCaseInclSuppl);
                         }
 
                     }
@@ -807,6 +1078,13 @@ public class Scrape implements InitializingBean {
                             System.err.println(value_1);
                             System.err.println(value_2);
                             System.err.println(value_3);
+
+                            uoOspiteInclSuppl = new UOOspiteInclSuppl();
+                            uoOspiteInclSuppl.setMatch(matchModal);
+                            uoOspiteInclSuppl.setName(value_1);
+                            uoOspiteInclSuppl.setUnder(value_2);
+                            uoOspiteInclSuppl.setOver(value_3);
+                            uoOspiteInclSupplRepo.save(uoOspiteInclSuppl);
                         }
 
                     }
@@ -827,10 +1105,12 @@ public class Scrape implements InitializingBean {
 
                     }
                 }
-
+// break loop when you find TUTTE
                 break;
             }
         }
+        driver.navigate().back();
+        return true;
 
     }
 

@@ -4,5 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface Match extends JpaRepository<com.akvasoft.eurobet.modals.Match,Integer> {
+public interface Match extends JpaRepository<com.akvasoft.eurobet.modals.Match, Integer> {
+    com.akvasoft.eurobet.modals.Match findTopByDateEqualsAndNameEquals(String date, String name);
 }
