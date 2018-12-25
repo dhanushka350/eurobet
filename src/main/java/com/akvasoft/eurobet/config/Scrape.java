@@ -12,6 +12,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -89,6 +90,10 @@ public class Scrape implements InitializingBean {
     private UOCaseInclSupplRepo uoCaseInclSupplRepo;
     @Autowired
     private UOOspiteInclSupplRepo uoOspiteInclSupplRepo;
+    @Autowired
+    private TempoFinale_1Repo tempoFinale_1Repo;
+    @Autowired
+    private QuartoConPuntPiuAltoRepo quartoConPuntPiuAltoRepo;
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -126,7 +131,7 @@ public class Scrape implements InitializingBean {
                     jse.executeScript("arguments[0].click();", element.findElement(By.tagName("a")));
                     Thread.sleep(1000);
                     scrapeMainTable(driver);
-//                    break;
+                    break;
                 }
 
                 break;
@@ -140,18 +145,21 @@ public class Scrape implements InitializingBean {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         WebElement centerDiv = driver.findElementByClassName("main-content-wrapper");
         WebElement tables = centerDiv.findElement(By.className("baseAnimation"));
-        for (WebElement table : tables.findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*"))) {
+        List<String> matchList = new ArrayList<>();
 
-            System.out.println(table.findElement(By.className("box-title")).getAttribute("innerText"));
+        for (WebElement table : tables.findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*"))) {
             for (WebElement element : table.findElement(By.className("anti-row")).findElements(By.xpath("./*"))) {
-                WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
-                jse.executeScript("arguments[0].scrollIntoView(true);", row.findElement(By.tagName("span")).findElement(By.tagName("a")));
-                jse.executeScript("arguments[0].click();", row.findElement(By.tagName("span")).findElement(By.tagName("a")));
                 Thread.sleep(1000);
-                scrapeInnerTables(driver);
-//                break;
+                WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
+                System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
             }
 
+        }
+
+        for (String s : matchList) {
+            driver.get(s);
+            scrapeInnerTables(driver);
             break;
         }
 
@@ -195,15 +203,21 @@ public class Scrape implements InitializingBean {
         PariDispari4Quarto pariDispari4Quarto = null;
         UOCaseInclSuppl uoCaseInclSuppl = null;
         UOOspiteInclSuppl uoOspiteInclSuppl = null;
+        TempoFinale_1 tempoFinale_1 = null;
+        QuartoConPuntPiuAlto quartoConPuntPiuAlto = null;
 
+        Thread.sleep(1000);
         WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
         String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").replace(">", " ").replace("\n", " ");
         String date = match.findElement(By.className("date-time")).getAttribute("innerText");
 
-        if (matchRepo.findTopByDateEqualsAndNameEquals(date, matchTitle) != null) {
-            driver.navigate().back();
-            return true;
-        }
+//        if (matchRepo.findTopByDateEqualsAndNameEquals(date, matchTitle) != null) {
+//            driver.navigate().back();
+//            driver.navigate().refresh();
+//            Thread.sleep(5000);
+//
+//            return true;
+//        }
         matchModal = new Match();
         matchModal.setDate(date);
         matchModal.setName(matchTitle);
@@ -735,22 +749,37 @@ public class Scrape implements InitializingBean {
 
                     }
 
-//                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
-//                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-//                                .findElement(By.tagName("div"))
-//                                .findElements(By.xpath("./*"));
-//
-//                        System.out.println("================ quarto con punt. piu' alto");
-//                        for (WebElement row : valueSet) {
-//                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-//                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-//                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-//                            System.err.println(value_1);
-//                            System.err.println(value_2);
-//                            System.err.println(value_3);
-//                        }
-//
-//                    }
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ quarto con punt. piu' alto");
+                        for (WebElement row : valueSet) {
+                            String name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            quartoConPuntPiuAlto = new QuartoConPuntPiuAlto();
+                            quartoConPuntPiuAlto.setMatch(matchModal);
+                            quartoConPuntPiuAlto.setName(name);
+                            quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            quartoConPuntPiuAlto = new QuartoConPuntPiuAlto();
+                            quartoConPuntPiuAlto.setMatch(matchModal);
+                            quartoConPuntPiuAlto.setName(name);
+                            quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            quartoConPuntPiuAlto = new QuartoConPuntPiuAlto();
+                            quartoConPuntPiuAlto.setMatch(matchModal);
+                            quartoConPuntPiuAlto.setName(name);
+                            quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
+                        }
+
+                    }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
@@ -1095,12 +1124,37 @@ public class Scrape implements InitializingBean {
 
                         System.out.println("================ 1° tempo/finale");
                         for (WebElement row : valueSet) {
-                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
+
+                            String name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            tempoFinale_1 = new TempoFinale_1();
+                            tempoFinale_1.setMatch(matchModal);
+                            tempoFinale_1.setName(name);
+                            tempoFinale_1.setValue(value);
+                            tempoFinale_1Repo.save(tempoFinale_1);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            tempoFinale_1 = new TempoFinale_1();
+                            tempoFinale_1.setMatch(matchModal);
+                            tempoFinale_1.setName(name);
+                            tempoFinale_1.setValue(value);
+                            tempoFinale_1Repo.save(tempoFinale_1);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            tempoFinale_1 = new TempoFinale_1();
+                            tempoFinale_1.setMatch(matchModal);
+                            tempoFinale_1.setName(name);
+                            tempoFinale_1.setValue(value);
+                            tempoFinale_1Repo.save(tempoFinale_1);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
                         }
 
                     }
@@ -1110,6 +1164,7 @@ public class Scrape implements InitializingBean {
             }
         }
         driver.navigate().back();
+        driver.navigate().refresh();
         return true;
 
     }

@@ -161,6 +161,14 @@ public class Match {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
     private List<UOOspiteInclSuppl> uoOspiteInclSuppls = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
+    private List<TempoFinale_1> tempoFinale_1s = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
+    private List<QuartoConPuntPiuAlto> quartoConPuntPiuAltos = new ArrayList<>();
+
     public int getId() {
         return id;
     }
