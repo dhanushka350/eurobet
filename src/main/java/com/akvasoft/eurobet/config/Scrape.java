@@ -94,6 +94,8 @@ public class Scrape implements InitializingBean {
     private TempoFinale_1Repo tempoFinale_1Repo;
     @Autowired
     private QuartoConPuntPiuAltoRepo quartoConPuntPiuAltoRepo;
+    @Autowired
+    private PrimaSquadraSegnareRepo primaSquadraSegnareRepo;
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -111,32 +113,32 @@ public class Scrape implements InitializingBean {
     public void scrapeOld() throws InterruptedException {
         FirefoxDriver driver = getDriver();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
-        driver.get("https://www.eurobet.it/it/scommesse/?fbclid=IwAR27GYB04rdte-s9-WdpYjLAfg19oul1wlMnjWaB15ZLU3rReTXOl_AL_sA#!/");
-
-        WebElement basket = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]/a/h2");
-        jse.executeScript("arguments[0].scrollIntoView(true);", basket);
-        jse.executeScript("arguments[0].click();", basket);
-
-        Thread.sleep(2000);
-
-        WebElement europa = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]").findElement(By.className("open")).findElement(By.tagName("ul")).findElements(By.xpath("./*")).get(1);
-        for (WebElement ignored : europa.findElements(By.xpath("./*"))) {
-            if (ignored.findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase("Europa")) {
-                jse.executeScript("arguments[0].scrollIntoView(true);", ignored.findElement(By.tagName("a")));
-                jse.executeScript("arguments[0].click();", ignored.findElement(By.tagName("a")));
-                Thread.sleep(500);
-
-                for (WebElement element : ignored.findElement(By.className("sidebar-league")).findElements(By.xpath("./*"))) {
-                    jse.executeScript("arguments[0].scrollIntoView(true);", element.findElement(By.tagName("a")));
-                    jse.executeScript("arguments[0].click();", element.findElement(By.tagName("a")));
-                    Thread.sleep(1000);
-                    scrapeMainTable(driver);
-                    break;
-                }
-
-                break;
-            }
-        }
+        driver.get("https://www.eurobet.it/it/scommesse/#!/basket/us-nba/");
+        scrapeMainTable(driver);
+//        WebElement basket = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]/a/h2");
+//        jse.executeScript("arguments[0].scrollIntoView(true);", basket);
+//        jse.executeScript("arguments[0].click();", basket);
+//
+//        Thread.sleep(2000);
+//
+//        WebElement europa = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]").findElement(By.className("open")).findElement(By.tagName("ul")).findElements(By.xpath("./*")).get(1);
+//        for (WebElement ignored : europa.findElements(By.xpath("./*"))) {
+//            if (ignored.findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase("Europa")) {
+//                jse.executeScript("arguments[0].scrollIntoView(true);", ignored.findElement(By.tagName("a")));
+//                jse.executeScript("arguments[0].click();", ignored.findElement(By.tagName("a")));
+//                Thread.sleep(500);
+//
+//                for (WebElement element : ignored.findElement(By.className("sidebar-league")).findElements(By.xpath("./*"))) {
+//                    jse.executeScript("arguments[0].scrollIntoView(true);", element.findElement(By.tagName("a")));
+//                    jse.executeScript("arguments[0].click();", element.findElement(By.tagName("a")));
+//                    Thread.sleep(1000);
+//                    scrapeMainTable(driver);
+//                    break;
+//                }
+//
+//                break;
+//            }
+//        }
 
 
     }
@@ -160,7 +162,6 @@ public class Scrape implements InitializingBean {
         for (String s : matchList) {
             driver.get(s);
             scrapeInnerTables(driver);
-            break;
         }
 
     }
@@ -205,24 +206,30 @@ public class Scrape implements InitializingBean {
         UOOspiteInclSuppl uoOspiteInclSuppl = null;
         TempoFinale_1 tempoFinale_1 = null;
         QuartoConPuntPiuAlto quartoConPuntPiuAlto = null;
+        PrimaSquadraSegnare primaSquadraSegnare = null;
 
         Thread.sleep(1000);
         WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
-        String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").replace(">", " ").replace("\n", " ");
-        String date = match.findElement(By.className("date-time")).getAttribute("innerText");
+        int length = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").split(">").length;
+        String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").split(">")[length - 1];
+        String date = match.findElement(By.className("date-time")).getAttribute("innerText").split("Ore")[0].trim();
+        String time = match.findElement(By.className("date-time")).getAttribute("innerText").split("Ore")[1].trim();
 
-//        if (matchRepo.findTopByDateEqualsAndNameEquals(date, matchTitle) != null) {
-//            driver.navigate().back();
-//            driver.navigate().refresh();
-//            Thread.sleep(5000);
-//
-//            return true;
-//        }
+
+        String team1 = matchTitle.split("-")[0].trim();
+        String team2 = matchTitle.split("-")[1].trim();
+
+        if (matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2) != null) {
+            return true;
+        }
+
         matchModal = new Match();
-        matchModal.setDate(date);
-        matchModal.setName(matchTitle);
-        matchModal = matchRepo.save(matchModal);
-
+        matchModal.setDate(date.trim());
+        matchModal.setTime(time.trim());
+        matchModal.setOne(matchTitle.split("-")[0].trim());
+        matchModal.setTwo(matchTitle.split("-")[1].trim());
+        matchModal.setStatus("Pre Match");
+        matchRepo.save(matchModal);
 
         WebElement type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
                 .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
@@ -1158,13 +1165,33 @@ public class Scrape implements InitializingBean {
                         }
 
                     }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("prima squadra a segnare")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ prima squadra a segnare");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+
+                            primaSquadraSegnare = new PrimaSquadraSegnare();
+                            primaSquadraSegnare.setMatch(matchModal);
+                            primaSquadraSegnare.setTeam1(value_1);
+                            primaSquadraSegnare.setTeam2(value_2);
+                            primaSquadraSegnareRepo.save(primaSquadraSegnare);
+                        }
+
+                    }
                 }
 // break loop when you find TUTTE
                 break;
             }
         }
-        driver.navigate().back();
-        driver.navigate().refresh();
         return true;
 
     }
