@@ -39,6 +39,14 @@ public class Match {
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
+    private List<UltimaSquadraSegnare> ultimaSquadraSegnares = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
+    private List<ComboMatchUltimoPunto> comboMatchUltimoPuntos = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "match", fetch = FetchType.LAZY)
     private List<TTMatch> ttMatches = new ArrayList<>();
 
     @JsonIgnore

@@ -96,6 +96,10 @@ public class Scrape implements InitializingBean {
     private QuartoConPuntPiuAltoRepo quartoConPuntPiuAltoRepo;
     @Autowired
     private PrimaSquadraSegnareRepo primaSquadraSegnareRepo;
+    @Autowired
+    private UltimaSquadraSegnareRepo ultimaSquadraSegnareRepo;
+    @Autowired
+    private ComboMatchUltimoPuntoRepo comboMatchUltimoPuntoRepo;
 
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -207,6 +211,8 @@ public class Scrape implements InitializingBean {
         TempoFinale_1 tempoFinale_1 = null;
         QuartoConPuntPiuAlto quartoConPuntPiuAlto = null;
         PrimaSquadraSegnare primaSquadraSegnare = null;
+        UltimaSquadraSegnare ultimaSquadraSegnare = null;
+        ComboMatchUltimoPunto comboMatchUltimoPunto = null;
 
         Thread.sleep(1000);
         WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
@@ -220,6 +226,7 @@ public class Scrape implements InitializingBean {
         String team2 = matchTitle.split("-")[1].trim();
 
         if (matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2) != null) {
+            System.out.println("already scraped.. skipping");
             return true;
         }
 
@@ -1124,6 +1131,7 @@ public class Scrape implements InitializingBean {
                         }
 
                     }
+
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1° tempo/finale")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
                                 .findElement(By.tagName("div"))
@@ -1184,6 +1192,68 @@ public class Scrape implements InitializingBean {
                             primaSquadraSegnare.setTeam1(value_1);
                             primaSquadraSegnare.setTeam2(value_2);
                             primaSquadraSegnareRepo.save(primaSquadraSegnare);
+                        }
+
+                    }
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("ultima squadra a segnare")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ ultima squadra a segnare");
+                        for (WebElement row : valueSet) {
+                            String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("innerText");
+                            String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                            System.err.println(value_1);
+                            System.err.println(value_2);
+
+                            ultimaSquadraSegnare = new UltimaSquadraSegnare();
+                            ultimaSquadraSegnare.setMatch(matchModal);
+                            ultimaSquadraSegnare.setTeam1(value_1);
+                            ultimaSquadraSegnare.setTeam2(value_2);
+                            ultimaSquadraSegnareRepo.save(ultimaSquadraSegnare);
+                        }
+
+                    }
+
+                    if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("combo match + ultimo punto")) {
+                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
+                                .findElement(By.tagName("div"))
+                                .findElements(By.xpath("./*"));
+
+                        System.out.println("================ combo match + ultimo punto");
+                        for (WebElement row : valueSet) {
+
+                            String name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            String value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            comboMatchUltimoPunto = new ComboMatchUltimoPunto();
+                            comboMatchUltimoPunto.setMatch(matchModal);
+                            comboMatchUltimoPunto.setName(name);
+                            comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            comboMatchUltimoPunto = new ComboMatchUltimoPunto();
+                            comboMatchUltimoPunto.setMatch(matchModal);
+                            comboMatchUltimoPunto.setName(name);
+                            comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
+                            name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                            value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+                            comboMatchUltimoPunto = new ComboMatchUltimoPunto();
+                            comboMatchUltimoPunto.setMatch(matchModal);
+                            comboMatchUltimoPunto.setName(name);
+                            comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
+                            System.err.println("name" + name);
+                            System.err.println("value" + value);
+
                         }
 
                     }
