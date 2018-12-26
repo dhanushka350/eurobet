@@ -1,5 +1,6 @@
 package com.akvasoft.eurobet.config;
 
+import com.akvasoft.eurobet.dto.Item;
 import com.akvasoft.eurobet.modals.*;
 import com.akvasoft.eurobet.modals.Match;
 import com.akvasoft.eurobet.repo.*;
@@ -10,14 +11,17 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
+@Controller
 public class Scrape implements InitializingBean {
 
+    static String status = "READY";
     @Autowired
     private com.akvasoft.eurobet.repo.Match matchRepo;
     @Autowired
@@ -101,6 +105,28 @@ public class Scrape implements InitializingBean {
     @Autowired
     private ComboMatchUltimoPuntoRepo comboMatchUltimoPuntoRepo;
 
+
+    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    @ResponseBody
+    private ModelAndView scrape() throws InterruptedException {
+        return new ModelAndView("index");
+    }
+
+    @RequestMapping(value = {"/status"}, method = RequestMethod.GET)
+    @ResponseBody
+    private String status() throws InterruptedException {
+        return status;
+    }
+
+    @RequestMapping(value = {"/scrape/league"}, method = RequestMethod.POST)
+    @ResponseBody
+    private void scrape(@RequestBody Item item) throws InterruptedException {
+        status = "received league " + item.getLeague() + " and link " + item.getLink() + ",";
+        scrapeOld(item.getLeague(), item.getLink());
+        status = "DONE!,";
+        status = "READY,";
+    }
+
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
         FirefoxOptions options = new FirefoxOptions();
@@ -114,10 +140,10 @@ public class Scrape implements InitializingBean {
     }
 
 
-    public void scrapeOld() throws InterruptedException {
+    public void scrapeOld(String league, String link) throws InterruptedException {
         FirefoxDriver driver = getDriver();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
-        driver.get("https://www.eurobet.it/it/scommesse/#!/basket/us-nba/");
+        driver.get(link);
         scrapeMainTable(driver);
 //        WebElement basket = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]/a/h2");
 //        jse.executeScript("arguments[0].scrollIntoView(true);", basket);
@@ -163,6 +189,7 @@ public class Scrape implements InitializingBean {
 
         }
 
+        status = "found " + matchList.size() + " matches,";
         for (String s : matchList) {
             driver.get(s);
             scrapeInnerTables(driver);
@@ -220,12 +247,12 @@ public class Scrape implements InitializingBean {
         String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").split(">")[length - 1];
         String date = match.findElement(By.className("date-time")).getAttribute("innerText").split("Ore")[0].trim();
         String time = match.findElement(By.className("date-time")).getAttribute("innerText").split("Ore")[1].trim();
-
-
         String team1 = matchTitle.split("-")[0].trim();
         String team2 = matchTitle.split("-")[1].trim();
 
+
         if (matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2) != null) {
+            status = "already scraped";
             System.out.println("already scraped.. skipping");
             return true;
         }
@@ -237,7 +264,8 @@ public class Scrape implements InitializingBean {
         matchModal.setTwo(matchTitle.split("-")[1].trim());
         matchModal.setStatus("Pre Match");
         matchRepo.save(matchModal);
-
+        status = "scraping Team 1 - " + team1 + " Team 2 - " + team2;
+        status = "Date - " + date + " Time - " + time;
         WebElement type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
                 .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
         for (WebElement ul : type.findElement(By.tagName("ul")).findElements(By.xpath("./*"))) {
@@ -265,7 +293,7 @@ public class Scrape implements InitializingBean {
                             ttMatch.setTwo(value_2);
                             ttMatchRepo.save(ttMatch);
                         }
-
+                        status = "t/t match completed.,";
 
                     }
 
@@ -288,7 +316,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap.setTwo(value_3);
                             ttHandicapRepo.save(ttHandicap);
                         }
-
+                        status = "t/t handicap completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 (5.5 pti)")) {
@@ -311,7 +339,7 @@ public class Scrape implements InitializingBean {
                             tpti55.setTwo(value_3);
                             tpti55Repo.save(tpti55);
                         }
-
+                        status = "1X2 (5.5 pti) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 tempi regolam.")) {
@@ -334,7 +362,7 @@ public class Scrape implements InitializingBean {
                             tempiRegolam.setTwo(value_3);
                             tempiRegolamRepo.save(tempiRegolam);
                         }
-
+                        status = "1X2 tempi regolam completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("supplementari?")) {
@@ -355,7 +383,7 @@ public class Scrape implements InitializingBean {
                             supplementariRepo.save(supplementari);
 
                         }
-
+                        status = "supplementari? completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("T/T + U/O ( incl. suppl.)")) {
@@ -385,14 +413,14 @@ public class Scrape implements InitializingBean {
                             ttuoInclSupplRepo.save(ttuoInclSuppl);
 
                         }
-
+                        status = "T/T + U/O ( incl. suppl.) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o (incl.suppl.)")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
                                 .findElements(By.xpath("./*"));
 
-                        System.out.println("================ u/o (incl.suppl.)");
+                        System.out.println("================ u/o (incl.suppl.). \n");
                         for (WebElement row : valueSet) {
                             String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
                             String under = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
@@ -410,7 +438,7 @@ public class Scrape implements InitializingBean {
                             uoInclSupplRepo.save(uoInclSuppl);
 
                         }
-
+                        status = "u/o (incl.suppl.) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O totale punti")) {
@@ -440,7 +468,7 @@ public class Scrape implements InitializingBean {
                             uoTotalPuntiRepo.save(uoTotalPunti);
 
                         }
-
+                        status = "U/O totale punti completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari (incl.suppl.)")) {
@@ -463,7 +491,7 @@ public class Scrape implements InitializingBean {
                             pariDispariInclSupplRepo.save(pariDispariInchSuppl);
 
                         }
-
+                        status = "pari/dispari (incl.suppl.) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1T")) {
@@ -489,7 +517,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap1TRepo.save(ttHandicap1T);
 
                         }
-
+                        status = "t/t handicap 1T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 1T (senza margine)")) {
@@ -515,7 +543,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1TRepo.save(senzaMargine_12_1T);
 
                         }
-
+                        status = "1X2 1T (senza margine) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 1T")) {
@@ -541,7 +569,7 @@ public class Scrape implements InitializingBean {
                             uo1TRepo.save(uo1T);
 
                         }
-
+                        status = "u/o 1T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 1T")) {
@@ -563,7 +591,7 @@ public class Scrape implements InitializingBean {
                             pariDispari1T.setDispari(dispari);
                             pariDispari1TRepo.save(pariDispari1T);
                         }
-
+                        status = "pari/dispari 1T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2T")) {
@@ -588,7 +616,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap2T.setTwo(value_3);
                             ttHandicap2TRepo.save(ttHandicap2T);
                         }
-
+                        status = "t/t handicap 2T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 2T (senza margine)")) {
@@ -613,7 +641,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2T.setTwo(value_3);
                             senzaMargine_12_2TRepo.save(senzaMargine_12_2T);
                         }
-
+                        status = "1X2 2T (senza margine) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 2T")) {
@@ -638,7 +666,7 @@ public class Scrape implements InitializingBean {
                             uo2T.setUnder(under);
                             uo2TRepo.save(uo2T);
                         }
-
+                        status = "u/o 2T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 2T")) {
@@ -660,7 +688,7 @@ public class Scrape implements InitializingBean {
                             pariDispari2T.setDispari(DISPARI);
                             pariDispari2TRepo.save(pariDispari2T);
                         }
-
+                        status = "pari/dispari 2T completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 1° quarto")) {
@@ -685,7 +713,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_1.setOver(value_3);
                             uoQuarto_1Repo.save(uoQuarto_1);
                         }
-
+                        status = "u/o 1° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 2° quarto")) {
@@ -710,7 +738,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_2.setOver(value_3);
                             uoQuarto_2Repo.save(uoQuarto_2);
                         }
-
+                        status = "u/o 2° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 3° quarto")) {
@@ -735,7 +763,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_3.setOver(value_3);
                             uoQuarto_3Repo.save(uoQuarto_3);
                         }
-
+                        status = "u/o 3° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("u/o 4° quarto")) {
@@ -760,7 +788,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_4.setOver(value_3);
                             uoQuarto_4Repo.save(uoQuarto_4);
                         }
-
+                        status = "u/o 4° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("quarto con punt. piu' alto")) {
@@ -792,7 +820,7 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setValue(value);
                             quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
                         }
-
+                        status = "quarto con punt. piu' alto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
@@ -817,7 +845,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap_1Quarto.setTwo(value_3);
                             ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
                         }
-
+                        status = "t/t handicap 1° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 1° quarto (senza margini)")) {
@@ -842,7 +870,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1Quarto.setTwo(value_3);
                             senzaMargine_12_1QuartoRepo.save(senzaMargine_12_1Quarto);
                         }
-
+                        status = "1X2 1° quarto (senza margini) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 1° quarto")) {
@@ -864,7 +892,7 @@ public class Scrape implements InitializingBean {
                             pariDispari1Quarto.setDispari(value_2);
                             pariDispari_1QuartoRepo.save(pariDispari1Quarto);
                         }
-
+                        status = "pari/dispari 1° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2° quarto")) {
@@ -889,7 +917,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap2Quarto.setTwo(value_3);
                             ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
                         }
-
+                        status = "t/t handicap 2° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 2° quarto (senza margini)")) {
@@ -914,7 +942,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2Quarto.setTwo(value_3);
                             senzaMargine_12_2QuartoRepo.save(senzaMargine_12_2Quarto);
                         }
-
+                        status = "1X2 2° quarto (senza margini) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 2° quarto")) {
@@ -936,7 +964,7 @@ public class Scrape implements InitializingBean {
                             pariDispari2Quarto.setDispari(value_2);
                             pariDispari2QuartoRepo.save(pariDispari2Quarto);
                         }
-
+                        status = "pari/dispari 2° quarto completed.,";
                     }
 
 
@@ -962,7 +990,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap3Quarto.setMatch(matchModal);
                             ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
                         }
-
+                        status = "t/t handicap 3° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 3° quarto (senza margini)")) {
@@ -987,7 +1015,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_3Quarto.setTwo(value_3);
                             senzaMargine_12_3QuartoRepo.save(senzaMargine_12_3Quarto);
                         }
-
+                        status = "1X2 3° quarto (senza margini) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 3° quarto")) {
@@ -1009,7 +1037,7 @@ public class Scrape implements InitializingBean {
                             pariDispari3Quarto.setDispari(value_2);
                             pariDispari3QuartoRepo.save(pariDispari3Quarto);
                         }
-
+                        status = "pari/dispari 3° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 4° quarto")) {
@@ -1034,7 +1062,7 @@ public class Scrape implements InitializingBean {
                             ttHandicap4Quarto.setTwo(value_3);
                             ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
                         }
-
+                        status = "t/t handicap 4° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1X2 4° quarto (senza margini)")) {
@@ -1059,7 +1087,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_4Quarto.setTwo(value_3);
                             senzaMargine_12_4QuartoRepo.save(senzaMargine_12_4Quarto);
                         }
-
+                        status = "1X2 4° quarto (senza margini) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("pari/dispari 4° quarto")) {
@@ -1081,7 +1109,7 @@ public class Scrape implements InitializingBean {
                             pariDispari4Quarto.setDispari(value_2);
                             pariDispari4QuartoRepo.save(pariDispari4Quarto);
                         }
-
+                        status = "pari/dispari 4° quarto completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O casa (incl.suppl.)")) {
@@ -1105,7 +1133,7 @@ public class Scrape implements InitializingBean {
                             uoCaseInclSuppl.setOver(value_3);
                             uoCaseInclSupplRepo.save(uoCaseInclSuppl);
                         }
-
+                        status = "U/O casa (incl.suppl.) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("U/O ospite (incl.suppl.)")) {
@@ -1129,7 +1157,7 @@ public class Scrape implements InitializingBean {
                             uoOspiteInclSuppl.setOver(value_3);
                             uoOspiteInclSupplRepo.save(uoOspiteInclSuppl);
                         }
-
+                        status = "U/O ospite (incl.suppl.) completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("1° tempo/finale")) {
@@ -1171,7 +1199,7 @@ public class Scrape implements InitializingBean {
                             System.err.println("value" + value);
 
                         }
-
+                        status = "1° tempo/finale completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("prima squadra a segnare")) {
@@ -1193,7 +1221,7 @@ public class Scrape implements InitializingBean {
                             primaSquadraSegnare.setTeam2(value_2);
                             primaSquadraSegnareRepo.save(primaSquadraSegnare);
                         }
-
+                        status = "prima squadra a segnare completed.,";
                     }
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("ultima squadra a segnare")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
@@ -1213,7 +1241,7 @@ public class Scrape implements InitializingBean {
                             ultimaSquadraSegnare.setTeam2(value_2);
                             ultimaSquadraSegnareRepo.save(ultimaSquadraSegnare);
                         }
-
+                        status = "ultima squadra a segnare completed.,";
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("combo match + ultimo punto")) {
@@ -1255,7 +1283,7 @@ public class Scrape implements InitializingBean {
                             System.err.println("value" + value);
 
                         }
-
+                        status = "combo match + ultimo punto completed.,";
                     }
                 }
 // break loop when you find TUTTE
@@ -1268,6 +1296,6 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.scrapeOld();
+//        this.scrapeOld();
     }
 }
