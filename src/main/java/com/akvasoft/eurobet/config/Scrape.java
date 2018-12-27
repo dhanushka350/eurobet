@@ -6,9 +6,11 @@ import com.akvasoft.eurobet.modals.Match;
 import com.akvasoft.eurobet.repo.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -104,6 +106,8 @@ public class Scrape implements InitializingBean {
     private UltimaSquadraSegnareRepo ultimaSquadraSegnareRepo;
     @Autowired
     private ComboMatchUltimoPuntoRepo comboMatchUltimoPuntoRepo;
+    @Autowired
+    private ScrapeLinksRepo scrapeLinksRepo;
 
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
@@ -130,7 +134,11 @@ public class Scrape implements InitializingBean {
     public FirefoxDriver getDriver() {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
         FirefoxOptions options = new FirefoxOptions();
+//        FirefoxProfile p = new FirefoxProfile();
+//        p.setPreference("javascript.enabled", false);
         options.setHeadless(false);
+//        options.setProfile(p);
+
 
         FirefoxDriver driver = new FirefoxDriver(options);
         System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
@@ -139,41 +147,63 @@ public class Scrape implements InitializingBean {
         return driver;
     }
 
+    public void scrapeList(List<Item> items) throws InterruptedException {
+        scrapeLinksRepo.deleteAll();
+        ScrapeLinks links = null;
+        for (Item item : items) {
+            links = new ScrapeLinks();
+            links.setName(item.getLeague());
+            links.setValue(item.getLink());
+            scrapeLinksRepo.save(links);
+        }
+
+    }
 
     public void scrapeOld(String league, String link) throws InterruptedException {
         FirefoxDriver driver = getDriver();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
-        driver.get(link);
-        scrapeMainTable(driver);
-//        WebElement basket = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]/a/h2");
-//        jse.executeScript("arguments[0].scrollIntoView(true);", basket);
-//        jse.executeScript("arguments[0].click();", basket);
-//
-//        Thread.sleep(2000);
-//
-//        WebElement europa = driver.findElementByXPath("/html/body/div[5]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul[2]/li[3]").findElement(By.className("open")).findElement(By.tagName("ul")).findElements(By.xpath("./*")).get(1);
-//        for (WebElement ignored : europa.findElements(By.xpath("./*"))) {
-//            if (ignored.findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase("Europa")) {
-//                jse.executeScript("arguments[0].scrollIntoView(true);", ignored.findElement(By.tagName("a")));
-//                jse.executeScript("arguments[0].click();", ignored.findElement(By.tagName("a")));
-//                Thread.sleep(500);
-//
-//                for (WebElement element : ignored.findElement(By.className("sidebar-league")).findElements(By.xpath("./*"))) {
-//                    jse.executeScript("arguments[0].scrollIntoView(true);", element.findElement(By.tagName("a")));
-//                    jse.executeScript("arguments[0].click();", element.findElement(By.tagName("a")));
-//                    Thread.sleep(1000);
-//                    scrapeMainTable(driver);
-//                    break;
-//                }
-//
-//                break;
-//            }
-//        }
+//        driver.get(link);
+//        scrapeMainTable(driver, "PRE MATCH");
+        goToLive(driver, league);
 
 
     }
 
-    private void scrapeMainTable(FirefoxDriver driver) throws InterruptedException {
+    private void goToLive(FirefoxDriver driver, String league) throws InterruptedException {
+        JavascriptExecutor jse = (JavascriptExecutor) driver;
+        driver.get("https://www.eurobet.it/it/scommesse/#!");
+        WebElement live = driver.findElementByXPath("/html/body/header/div/nav/ul/li[2]/a");
+        jse.executeScript("arguments[0].click();", live);
+        Thread.sleep(5000);
+        boolean found = false;
+        for (WebElement sport : driver.findElementByXPath("/html/body/div[4]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul/div/ul").findElements(By.xpath("./*"))) {
+            System.out.println(sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText"));
+            if (sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText").equalsIgnoreCase("Basket")) {
+                jse.executeScript("arguments[0].click();", sport.findElement(By.tagName("a")));
+
+
+                for (WebElement element : sport.findElements(By.xpath("./*")).get(1).findElements(By.xpath("./*"))) {
+                    if (element.findElement(By.tagName("li")).findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase(league)) {
+                        jse.executeScript("arguments[0].click();", element.findElement(By.tagName("li")).findElement(By.tagName("a")));
+                        Thread.sleep(5000);
+
+                        for (WebElement li : element.findElement(By.tagName("ul")).findElements(By.xpath("./*"))) {
+                            jse.executeScript("arguments[0].click();", li.findElement(By.className("match-row")).findElement(By.className("match")).findElement(By.tagName("a")));
+                            Thread.sleep(1000);
+                            scrapeInnerTables(driver, "LIVE");
+//                            break;
+                        }
+                        ;
+
+                    }
+                }
+
+            }
+        }
+
+    }
+
+    private void scrapeMainTable(FirefoxDriver driver, String type) throws InterruptedException {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         WebElement centerDiv = driver.findElementByClassName("main-content-wrapper");
         WebElement tables = centerDiv.findElement(By.className("baseAnimation"));
@@ -192,12 +222,12 @@ public class Scrape implements InitializingBean {
         status = "found " + matchList.size() + " matches,";
         for (String s : matchList) {
             driver.get(s);
-            scrapeInnerTables(driver);
+            scrapeInnerTables(driver, type);
         }
 
     }
 
-    private boolean scrapeInnerTables(FirefoxDriver driver) throws InterruptedException {
+    private boolean scrapeInnerTables(FirefoxDriver driver, String scrape_type) throws InterruptedException {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         Match matchModal = null;
         TTMatch ttMatch = null;
@@ -241,8 +271,13 @@ public class Scrape implements InitializingBean {
         UltimaSquadraSegnare ultimaSquadraSegnare = null;
         ComboMatchUltimoPunto comboMatchUltimoPunto = null;
 
-        Thread.sleep(1000);
-        WebElement match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
+        Thread.sleep(2000);
+        WebElement match = null;
+        try {
+            match = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div/div[1]/div");
+        } catch (NoSuchElementException e) {
+            match = driver.findElementByXPath("/html/body/div[4]/div[2]/div/div[1]/div/div/div/div[1]/div");
+        }
         int length = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").split(">").length;
         String matchTitle = match.findElement(By.className("breadcrumbs")).getAttribute("innerText").split(">")[length - 1];
         String date = match.findElement(By.className("date-time")).getAttribute("innerText").split("Ore")[0].trim();
@@ -250,34 +285,57 @@ public class Scrape implements InitializingBean {
         String team1 = matchTitle.split("-")[0].trim();
         String team2 = matchTitle.split("-")[1].trim();
 
+        Match top = matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2);
+        if (top != null) {
+            if (scrape_type.equalsIgnoreCase("LIVE") && top.getStatus().equalsIgnoreCase("PRE MATCH")) {
+                top.setStatus("PRE MATCH END");
+                matchRepo.save(top);
+            } else {
+                status = "already scraped";
+                System.out.println("already scraped.. skipping");
+//                return true;
+            }
+        } else {
 
-        if (matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2) != null) {
-            status = "already scraped";
-            System.out.println("already scraped.. skipping");
-            return true;
+            matchModal = new Match();
+            matchModal.setDate(date.trim());
+            matchModal.setTime(time.trim());
+            matchModal.setOne(matchTitle.split("-")[0].trim());
+            matchModal.setTwo(matchTitle.split("-")[1].trim());
+            matchModal.setStatus(scrape_type);
+            matchRepo.save(matchModal);
         }
 
-        matchModal = new Match();
-        matchModal.setDate(date.trim());
-        matchModal.setTime(time.trim());
-        matchModal.setOne(matchTitle.split("-")[0].trim());
-        matchModal.setTwo(matchTitle.split("-")[1].trim());
-        matchModal.setStatus("Pre Match");
-        matchRepo.save(matchModal);
         status = "scraping Team 1 - " + team1 + " Team 2 - " + team2;
         status = "Date - " + date + " Time - " + time;
-        WebElement type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
-                .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
+        WebElement type = null;
+        try {
+            type = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div")
+                    .findElement(By.tagName("div")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.className("filtri-sport"));
+        } catch (NoSuchElementException r) {
+            type = driver.findElementByXPath("/html/body/div[4]/div[2]/div/div[1]/div/div/div/div[2]/div/section/div/div[1]");
+        }
+
         for (WebElement ul : type.findElement(By.tagName("ul")).findElements(By.xpath("./*"))) {
             if (ul.getAttribute("innerText").equalsIgnoreCase("TUTTE")) {
                 jse.executeScript("arguments[0].scrollIntoView(true);", ul);
                 jse.executeScript("arguments[0].click();", ul);
                 Thread.sleep(1000);
+                List<WebElement> elements = null;
+                try {
+                    elements = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"));
+                } catch (NoSuchElementException v) {
+                    elements = driver.findElementByXPath("/html/body/div[4]/div[2]/div/div[1]/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"));
+                }
+                for (WebElement table : elements) {
 
-                for (WebElement table : driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"))) {
+                    if (!table.getAttribute("class").equalsIgnoreCase("box-container")) {
+                        continue;
+                    }
 
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t match")) {
+
                         WebElement valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
                                 .findElement(By.tagName("div"));
                         System.out.println("================ t/t match");
@@ -298,23 +356,42 @@ public class Scrape implements InitializingBean {
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
-                                .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                        System.err.println("================ t/t handicap");
+                        List<WebElement> valueSet = null;
 
-                        System.out.println("================ t/t handicap");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
-                            ttHandicap = new TTHandicap();
-                            ttHandicap.setMatch(matchModal);
-                            ttHandicap.setName(value_1);
-                            ttHandicap.setOne(value_2);
-                            ttHandicap.setTwo(value_3);
-                            ttHandicapRepo.save(ttHandicap);
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap = new TTHandicap();
+                                ttHandicap.setMatch(matchModal);
+                                ttHandicap.setName(value_1);
+                                ttHandicap.setOne(value_2);
+                                ttHandicap.setTwo(value_3);
+                                ttHandicapRepo.save(ttHandicap);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap = new TTHandicap();
+                                ttHandicap.setMatch(matchModal);
+                                ttHandicap.setName(value_1);
+                                ttHandicap.setOne(value_2);
+                                ttHandicap.setTwo(value_3);
+                                ttHandicapRepo.save(ttHandicap);
+                            }
                         }
                         status = "t/t handicap completed.,";
                     }
@@ -494,29 +571,45 @@ public class Scrape implements InitializingBean {
                         status = "pari/dispari (incl.suppl.) completed.,";
                     }
 
+
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1T")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
-
-                        System.out.println("================ t/t handicap 1T");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
-
-                            ttHandicap1T = new TTHandicap1T();
-                            ttHandicap1T.setMatch(matchModal);
-                            ttHandicap1T.setName(value_1);
-                            ttHandicap1T.setOne(value_2);
-                            ttHandicap1T.setTwo(value_2);
-                            ttHandicap1TRepo.save(ttHandicap1T);
-
+                        System.err.println("================ t/t 1T handicap");
+                        List<WebElement> valueSet = null;
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap1T = new TTHandicap1T();
+                                ttHandicap1T.setMatch(matchModal);
+                                ttHandicap1T.setName(value_1);
+                                ttHandicap1T.setOne(value_2);
+                                ttHandicap1T.setTwo(value_2);
+                                ttHandicap1TRepo.save(ttHandicap1T);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap1T = new TTHandicap1T();
+                                ttHandicap1T.setMatch(matchModal);
+                                ttHandicap1T.setName(value_1);
+                                ttHandicap1T.setOne(value_2);
+                                ttHandicap1T.setTwo(value_2);
+                                ttHandicap1TRepo.save(ttHandicap1T);
+                            }
                         }
+
                         status = "t/t handicap 1T completed.,";
                     }
 
@@ -595,26 +688,41 @@ public class Scrape implements InitializingBean {
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2T")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
-
-                        System.out.println("================ t/t handicap 2T");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
-
-                            ttHandicap2T = new TTHandicap2T();
-                            ttHandicap2T.setMatch(matchModal);
-                            ttHandicap2T.setName(value_1);
-                            ttHandicap2T.setOne(value_2);
-                            ttHandicap2T.setTwo(value_3);
-                            ttHandicap2TRepo.save(ttHandicap2T);
+                        System.err.println("================ t/t handicap 2 T");
+                        List<WebElement> valueSet = null;
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap2T = new TTHandicap2T();
+                                ttHandicap2T.setMatch(matchModal);
+                                ttHandicap2T.setName(value_1);
+                                ttHandicap2T.setOne(value_2);
+                                ttHandicap2T.setTwo(value_3);
+                                ttHandicap2TRepo.save(ttHandicap2T);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap2T = new TTHandicap2T();
+                                ttHandicap2T.setMatch(matchModal);
+                                ttHandicap2T.setName(value_1);
+                                ttHandicap2T.setOne(value_2);
+                                ttHandicap2T.setTwo(value_3);
+                                ttHandicap2TRepo.save(ttHandicap2T);
+                            }
                         }
                         status = "t/t handicap 2T completed.,";
                     }
@@ -824,26 +932,43 @@ public class Scrape implements InitializingBean {
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 1° quarto")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
 
-                        System.out.println("================ t/t handicap 1° quarto");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
+                        System.err.println("================ t/t handicap 1° quarto");
+                        List<WebElement> valueSet = null;
 
-                            ttHandicap_1Quarto = new TTHandicap_1Quarto();
-                            ttHandicap_1Quarto.setMatch(matchModal);
-                            ttHandicap_1Quarto.setName(value_1);
-                            ttHandicap_1Quarto.setOne(value_2);
-                            ttHandicap_1Quarto.setTwo(value_3);
-                            ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap_1Quarto = new TTHandicap_1Quarto();
+                                ttHandicap_1Quarto.setMatch(matchModal);
+                                ttHandicap_1Quarto.setName(value_1);
+                                ttHandicap_1Quarto.setOne(value_2);
+                                ttHandicap_1Quarto.setTwo(value_3);
+                                ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap_1Quarto = new TTHandicap_1Quarto();
+                                ttHandicap_1Quarto.setMatch(matchModal);
+                                ttHandicap_1Quarto.setName(value_1);
+                                ttHandicap_1Quarto.setOne(value_2);
+                                ttHandicap_1Quarto.setTwo(value_3);
+                                ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
+                            }
                         }
                         status = "t/t handicap 1° quarto completed.,";
                     }
@@ -896,27 +1021,45 @@ public class Scrape implements InitializingBean {
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 2° quarto")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
 
-                        System.out.println("================ t/t handicap 2° quarto");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
+                        System.err.println("================ t/t handicap 2° quarto");
+                        List<WebElement> valueSet = null;
 
-                            ttHandicap2Quarto = new TTHandicap2Quarto();
-                            ttHandicap2Quarto.setMatch(matchModal);
-                            ttHandicap2Quarto.setName(value_1);
-                            ttHandicap2Quarto.setOne(value_2);
-                            ttHandicap2Quarto.setTwo(value_3);
-                            ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap2Quarto = new TTHandicap2Quarto();
+                                ttHandicap2Quarto.setMatch(matchModal);
+                                ttHandicap2Quarto.setName(value_1);
+                                ttHandicap2Quarto.setOne(value_2);
+                                ttHandicap2Quarto.setTwo(value_3);
+                                ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap2Quarto = new TTHandicap2Quarto();
+                                ttHandicap2Quarto.setMatch(matchModal);
+                                ttHandicap2Quarto.setName(value_1);
+                                ttHandicap2Quarto.setOne(value_2);
+                                ttHandicap2Quarto.setTwo(value_3);
+                                ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
+                            }
                         }
+
                         status = "t/t handicap 2° quarto completed.,";
                     }
 
@@ -969,26 +1112,43 @@ public class Scrape implements InitializingBean {
 
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 3° quarto")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
 
-                        System.out.println("================ t/t handicap 3° quarto");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
+                        System.err.println("================ t/t handicap 2° quarto");
+                        List<WebElement> valueSet = null;
 
-                            ttHandicap3Quarto = new TTHandicap3Quarto();
-                            ttHandicap3Quarto.setName(value_1);
-                            ttHandicap3Quarto.setOne(value_2);
-                            ttHandicap3Quarto.setTwo(value_3);
-                            ttHandicap3Quarto.setMatch(matchModal);
-                            ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap3Quarto = new TTHandicap3Quarto();
+                                ttHandicap3Quarto.setName(value_1);
+                                ttHandicap3Quarto.setOne(value_2);
+                                ttHandicap3Quarto.setTwo(value_3);
+                                ttHandicap3Quarto.setMatch(matchModal);
+                                ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap3Quarto = new TTHandicap3Quarto();
+                                ttHandicap3Quarto.setName(value_1);
+                                ttHandicap3Quarto.setOne(value_2);
+                                ttHandicap3Quarto.setTwo(value_3);
+                                ttHandicap3Quarto.setMatch(matchModal);
+                                ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
+                            }
                         }
                         status = "t/t handicap 3° quarto completed.,";
                     }
@@ -1041,26 +1201,43 @@ public class Scrape implements InitializingBean {
                     }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t handicap 4° quarto")) {
-                        List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
-                                .findElement(By.tagName("div"))
-                                .findElement(By.tagName("div"))
-                                .findElements(By.xpath("./*"));
 
-                        System.out.println("================ t/t handicap 4° quarto");
-                        for (WebElement row : valueSet) {
-                            String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                            String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
-                            String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
-                            System.err.println(value_1);
-                            System.err.println(value_2);
-                            System.err.println(value_3);
+                        System.err.println("================ t/t handicap 2° quarto");
+                        List<WebElement> valueSet = null;
 
-                            ttHandicap4Quarto = new TTHandicap4Quarto();
-                            ttHandicap4Quarto.setMatch(matchModal);
-                            ttHandicap4Quarto.setName(value_1);
-                            ttHandicap4Quarto.setOne(value_2);
-                            ttHandicap4Quarto.setTwo(value_3);
-                            ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
+                        if (scrape_type.equalsIgnoreCase("LIVE")) {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap4Quarto = new TTHandicap4Quarto();
+                                ttHandicap4Quarto.setMatch(matchModal);
+                                ttHandicap4Quarto.setName(value_1);
+                                ttHandicap4Quarto.setOne(value_2);
+                                ttHandicap4Quarto.setTwo(value_3);
+                                ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
+                            }
+                        } else {
+                            valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport")).findElement(By.tagName("div"))
+                                    .findElement(By.tagName("div")).findElements(By.xpath("./*"));
+                            for (WebElement row : valueSet) {
+                                String value_1 = row.findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                String value_2 = row.findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).getAttribute("innerText");
+                                String value_3 = row.findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).getAttribute("innerText");
+                                System.err.println(value_1);
+                                System.err.println(value_2);
+                                System.err.println(value_3);
+                                ttHandicap4Quarto = new TTHandicap4Quarto();
+                                ttHandicap4Quarto.setMatch(matchModal);
+                                ttHandicap4Quarto.setName(value_1);
+                                ttHandicap4Quarto.setOne(value_2);
+                                ttHandicap4Quarto.setTwo(value_3);
+                                ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
+                            }
                         }
                         status = "t/t handicap 4° quarto completed.,";
                     }
@@ -1202,6 +1379,7 @@ public class Scrape implements InitializingBean {
                         status = "1° tempo/finale completed.,";
                     }
 
+
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("prima squadra a segnare")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
                                 .findElement(By.tagName("div"))
@@ -1223,6 +1401,7 @@ public class Scrape implements InitializingBean {
                         }
                         status = "prima squadra a segnare completed.,";
                     }
+
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("ultima squadra a segnare")) {
                         List<WebElement> valueSet = table.findElements(By.xpath("./*")).get(1).findElement(By.className("box-sport"))
                                 .findElement(By.tagName("div"))
@@ -1286,7 +1465,7 @@ public class Scrape implements InitializingBean {
                         status = "combo match + ultimo punto completed.,";
                     }
                 }
-// break loop when you find TUTTE
+
                 break;
             }
         }
@@ -1296,6 +1475,7 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-//        this.scrapeOld();
+        this.scrapeOld("CBA", "https://www.eurobet.it/it/scommesse/#!");
+//        this.scrapeOld("NBA", "https://www.eurobet.it/it/scommesse/#!/basket/us-nba/");
     }
 }
