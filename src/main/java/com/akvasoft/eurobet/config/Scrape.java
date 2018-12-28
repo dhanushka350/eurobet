@@ -258,10 +258,16 @@ public class Scrape implements InitializingBean {
 
         for (WebElement table : tables.findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*"))) {
             for (WebElement element : table.findElement(By.className("anti-row")).findElements(By.xpath("./*"))) {
-                Thread.sleep(1000);
-                WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
-                System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
-                matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                Thread.sleep(2000);
+                try {
+                    WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
+                    System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                    matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                } catch (NoSuchElementException e) {
+                    WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
+                    System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                    matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                }
             }
 
         }
@@ -1883,7 +1889,7 @@ public class Scrape implements InitializingBean {
                         status = "combo match + ultimo punto completed.,";
                     }
                 }
-
+                driver.close();
                 break;
             }
         }
