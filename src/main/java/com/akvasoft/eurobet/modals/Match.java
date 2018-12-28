@@ -29,6 +29,30 @@ public class Match {
     @Column(name = "T_MATCH_STATUS")
     private String status;
 
+    public List<UltimaSquadraSegnare> getUltimaSquadraSegnares() {
+        return ultimaSquadraSegnares;
+    }
+
+    public void setUltimaSquadraSegnares(List<UltimaSquadraSegnare> ultimaSquadraSegnares) {
+        this.ultimaSquadraSegnares = ultimaSquadraSegnares;
+    }
+
+    public List<ComboMatchUltimoPunto> getComboMatchUltimoPuntos() {
+        return comboMatchUltimoPuntos;
+    }
+
+    public void setComboMatchUltimoPuntos(List<ComboMatchUltimoPunto> comboMatchUltimoPuntos) {
+        this.comboMatchUltimoPuntos = comboMatchUltimoPuntos;
+    }
+
+    public List<PrimaSquadraSegnare> getPrimaSquadraSegnares() {
+        return primaSquadraSegnares;
+    }
+
+    public void setPrimaSquadraSegnares(List<PrimaSquadraSegnare> primaSquadraSegnares) {
+        this.primaSquadraSegnares = primaSquadraSegnares;
+    }
+
     public String getStatus() {
         return status;
     }

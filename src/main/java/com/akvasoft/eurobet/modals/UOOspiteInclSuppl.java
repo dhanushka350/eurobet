@@ -22,10 +22,21 @@ public class UOOspiteInclSuppl {
     @Column(name = "UO_OSPITE_INCL_SUPPL_OVER")
     private String over;
 
+    @Column(name = "UO_OSPITE_INCL_SUPPL_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "UO_OSPITE_INCL_SUPPL_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

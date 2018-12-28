@@ -18,10 +18,21 @@ public class PariDispariInchSuppl {
     @Column(name = "T_PARI_DISPARI_INCL_SUPPL_DISPARI")
     private String dispari;
 
+    @Column(name = "T_PARI_DISPARI_INCL_SUPPL_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_PARI_DISPARI_INCL_SUPPL_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

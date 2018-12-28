@@ -65,7 +65,7 @@ i.basic.icon.close:before { content: '\e80d'; } /* '' */
 i.basic.icon.color:before { content: '\e794'; } /* '' */
 i.basic.icon.chat:before { content: '\e720'; } /* '' */
 i.basic.icon.check:before { content: '\2611'; } /* '☑' */
-i.basic.icon.time:before { content: '🕔'; } /* '\1f554' */
+i.basic.icon.scrtime:before { content: '🕔'; } /* '\1f554' */
 i.basic.icon.cloud:before { content: '\2601'; } /* '☁' */
 i.basic.icon.code:before { content: '\e714'; } /* '' */
 i.basic.icon.email:before { content: '\40'; } /* '@' */

@@ -18,6 +18,9 @@ public class PrimaSquadraSegnare {
     @Column(name = "T_PRIMA_SQUADRA_SEGNARE_TEAM2")
     private String team2;
 
+    @Column(name = "T_PRIMA_SQUADRA_SEGNARE_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_PRIMA_SQUADRA_SEGNARE_MATCH")
@@ -25,6 +28,14 @@ public class PrimaSquadraSegnare {
 
     public int getId() {
         return id;
+    }
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
     }
 
     public void setId(int id) {

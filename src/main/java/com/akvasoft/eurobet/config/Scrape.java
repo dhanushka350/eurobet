@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,8 @@ import java.util.List;
 public class Scrape implements InitializingBean {
 
     static String status = "READY";
+    static String pre_matchTime = "";
+    static String live_matchTime = "";
     @Autowired
     private com.akvasoft.eurobet.repo.Match matchRepo;
     @Autowired
@@ -159,14 +162,58 @@ public class Scrape implements InitializingBean {
 
     }
 
+    public void scrapeLive() {
+        List<ScrapeLinks> all = scrapeLinksRepo.findAll();
+        new Thread(() -> {
+
+            System.err.println("LIVE THREAD STARTED");
+            FirefoxDriver driver = getDriver();
+            SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+            live_matchTime = time_formatter.format(System.currentTimeMillis());
+            try {
+
+                for (ScrapeLinks links : all) {
+                    this.goToLive(driver, links.getName());
+                }
+
+                Thread.sleep(100000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }).start();
+    }
+
+    public void scrapePreMatch() {
+        List<ScrapeLinks> all = scrapeLinksRepo.findAll();
+        new Thread(() -> {
+            System.err.println("PRE MATCH THREAD STARTED");
+            FirefoxDriver driver = getDriver();
+            SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+            pre_matchTime = time_formatter.format(System.currentTimeMillis());
+            try {
+
+                for (ScrapeLinks links : all) {
+                    this.scrapeOld(links.getName(), links.getValue());
+                }
+
+                Thread.sleep(1200000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }).start();
+    }
+
+
     public void scrapeOld(String league, String link) throws InterruptedException {
         FirefoxDriver driver = getDriver();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
-//        driver.get(link);
-//        scrapeMainTable(driver, "PRE MATCH");
-        goToLive(driver, league);
-
-
+        driver.get(link);
+        Thread.sleep(2000);
+        scrapeMainTable(driver, "PRE MATCH");
     }
 
     private void goToLive(FirefoxDriver driver, String league) throws InterruptedException {
@@ -349,6 +396,13 @@ public class Scrape implements InitializingBean {
                             ttMatch.setMatch(matchModal);
                             ttMatch.setOne(value_1);
                             ttMatch.setTwo(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                ttMatch.setScrtime(live_matchTime);
+                            } else {
+                                ttMatch.setScrtime(pre_matchTime);
+                            }
+
                             ttMatchRepo.save(ttMatch);
                         }
                         status = "t/t match completed.,";
@@ -373,6 +427,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap.setName(value_1);
                                 ttHandicap.setOne(value_2);
                                 ttHandicap.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicapRepo.save(ttHandicap);
                             }
                         } else {
@@ -390,6 +451,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap.setName(value_1);
                                 ttHandicap.setOne(value_2);
                                 ttHandicap.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicapRepo.save(ttHandicap);
                             }
                         }
@@ -414,6 +482,13 @@ public class Scrape implements InitializingBean {
                             tpti55.setOne(value_1);
                             tpti55.setMultiple(value_2);
                             tpti55.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                tpti55.setScrtime(live_matchTime);
+                            } else {
+                                tpti55.setScrtime(pre_matchTime);
+                            }
+
                             tpti55Repo.save(tpti55);
                         }
                         status = "1X2 (5.5 pti) completed.,";
@@ -437,6 +512,13 @@ public class Scrape implements InitializingBean {
                             tempiRegolam.setOne(value_1);
                             tempiRegolam.setMultiple(value_2);
                             tempiRegolam.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                tempiRegolam.setScrtime(live_matchTime);
+                            } else {
+                                tempiRegolam.setScrtime(pre_matchTime);
+                            }
+
                             tempiRegolamRepo.save(tempiRegolam);
                         }
                         status = "1X2 tempi regolam completed.,";
@@ -457,6 +539,13 @@ public class Scrape implements InitializingBean {
                             supplementari.setMatch(matchModal);
                             supplementari.setSl(sl);
                             supplementari.setNo(no);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                supplementari.setScrtime(live_matchTime);
+                            } else {
+                                supplementari.setScrtime(pre_matchTime);
+                            }
+
                             supplementariRepo.save(supplementari);
 
                         }
@@ -487,6 +576,13 @@ public class Scrape implements InitializingBean {
                             ttuoInclSuppl.setTeamOneOver(team_1_over);
                             ttuoInclSuppl.setTeamTwoUnder(team_2_under);
                             ttuoInclSuppl.setTeamTwoOver(team_2_over);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                ttuoInclSuppl.setScrtime(live_matchTime);
+                            } else {
+                                ttuoInclSuppl.setScrtime(pre_matchTime);
+                            }
+
                             ttuoInclSupplRepo.save(ttuoInclSuppl);
 
                         }
@@ -512,6 +608,13 @@ public class Scrape implements InitializingBean {
                             uoInclSuppl.setName(value_1);
                             uoInclSuppl.setUnder(under);
                             uoInclSuppl.setOver(over);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoInclSuppl.setScrtime(live_matchTime);
+                            } else {
+                                uoInclSuppl.setScrtime(pre_matchTime);
+                            }
+
                             uoInclSupplRepo.save(uoInclSuppl);
 
                         }
@@ -542,6 +645,13 @@ public class Scrape implements InitializingBean {
                             uoTotalPunti.setUnder(under);
                             uoTotalPunti.setOver(over);
                             uoTotalPunti.setEsattamente(ESATTAMENTE);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoTotalPunti.setScrtime(live_matchTime);
+                            } else {
+                                uoTotalPunti.setScrtime(pre_matchTime);
+                            }
+
                             uoTotalPuntiRepo.save(uoTotalPunti);
 
                         }
@@ -565,6 +675,13 @@ public class Scrape implements InitializingBean {
                             pariDispariInchSuppl.setMatch(matchModal);
                             pariDispariInchSuppl.setPari(PARI);
                             pariDispariInchSuppl.setDispari(DISPARI);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispariInchSuppl.setScrtime(live_matchTime);
+                            } else {
+                                pariDispariInchSuppl.setScrtime(pre_matchTime);
+                            }
+
                             pariDispariInclSupplRepo.save(pariDispariInchSuppl);
 
                         }
@@ -589,6 +706,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap1T.setName(value_1);
                                 ttHandicap1T.setOne(value_2);
                                 ttHandicap1T.setTwo(value_2);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap1T.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap1T.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap1TRepo.save(ttHandicap1T);
                             }
                         } else {
@@ -606,6 +730,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap1T.setName(value_1);
                                 ttHandicap1T.setOne(value_2);
                                 ttHandicap1T.setTwo(value_2);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap1T.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap1T.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap1TRepo.save(ttHandicap1T);
                             }
                         }
@@ -633,6 +764,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1T.setOne(value_1);
                             senzaMargine_12_1T.setMulti(value_2);
                             senzaMargine_12_1T.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_1T.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_1T.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_1TRepo.save(senzaMargine_12_1T);
 
                         }
@@ -659,6 +797,13 @@ public class Scrape implements InitializingBean {
                             uo1T.setName(value_1);
                             uo1T.setUnder(under);
                             uo1T.setOver(over);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uo1T.setScrtime(live_matchTime);
+                            } else {
+                                uo1T.setScrtime(pre_matchTime);
+                            }
+
                             uo1TRepo.save(uo1T);
 
                         }
@@ -682,6 +827,13 @@ public class Scrape implements InitializingBean {
                             pariDispari1T.setMatch(matchModal);
                             pariDispari1T.setPari(pari);
                             pariDispari1T.setDispari(dispari);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari1T.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari1T.setScrtime(pre_matchTime);
+                            }
+
                             pariDispari1TRepo.save(pariDispari1T);
                         }
                         status = "pari/dispari 1T completed.,";
@@ -704,6 +856,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2T.setName(value_1);
                                 ttHandicap2T.setOne(value_2);
                                 ttHandicap2T.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap2T.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap2T.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap2TRepo.save(ttHandicap2T);
                             }
                         } else {
@@ -721,6 +880,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2T.setName(value_1);
                                 ttHandicap2T.setOne(value_2);
                                 ttHandicap2T.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap2T.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap2T.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap2TRepo.save(ttHandicap2T);
                             }
                         }
@@ -747,6 +913,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2T.setOne(value_1);
                             senzaMargine_12_2T.setMulti(value_2);
                             senzaMargine_12_2T.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_2T.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_2T.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_2TRepo.save(senzaMargine_12_2T);
                         }
                         status = "1X2 2T (senza margine) completed.,";
@@ -772,6 +945,13 @@ public class Scrape implements InitializingBean {
                             uo2T.setName(value_1);
                             uo2T.setOver(over);
                             uo2T.setUnder(under);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uo2T.setScrtime(live_matchTime);
+                            } else {
+                                uo2T.setScrtime(pre_matchTime);
+                            }
+
                             uo2TRepo.save(uo2T);
                         }
                         status = "u/o 2T completed.,";
@@ -794,6 +974,14 @@ public class Scrape implements InitializingBean {
                             pariDispari2T.setMatch(matchModal);
                             pariDispari2T.setPari(PARI);
                             pariDispari2T.setDispari(DISPARI);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari2T.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari2T.setScrtime(pre_matchTime);
+                            }
+
+
                             pariDispari2TRepo.save(pariDispari2T);
                         }
                         status = "pari/dispari 2T completed.,";
@@ -819,6 +1007,14 @@ public class Scrape implements InitializingBean {
                             uoQuarto_1.setName(value_1);
                             uoQuarto_1.setUnder(value_2);
                             uoQuarto_1.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoQuarto_1.setScrtime(live_matchTime);
+                            } else {
+                                uoQuarto_1.setScrtime(pre_matchTime);
+                            }
+
+
                             uoQuarto_1Repo.save(uoQuarto_1);
                         }
                         status = "u/o 1° quarto completed.,";
@@ -844,6 +1040,13 @@ public class Scrape implements InitializingBean {
                             uoQuarto_2.setName(value_1);
                             uoQuarto_2.setUnder(value_2);
                             uoQuarto_2.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoQuarto_2.setScrtime(live_matchTime);
+                            } else {
+                                uoQuarto_2.setScrtime(pre_matchTime);
+                            }
+
                             uoQuarto_2Repo.save(uoQuarto_2);
                         }
                         status = "u/o 2° quarto completed.,";
@@ -869,6 +1072,13 @@ public class Scrape implements InitializingBean {
                             uoQuarto_3.setName(value_1);
                             uoQuarto_3.setUnder(value_2);
                             uoQuarto_3.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoQuarto_3.setScrtime(live_matchTime);
+                            } else {
+                                uoQuarto_3.setScrtime(pre_matchTime);
+                            }
+
                             uoQuarto_3Repo.save(uoQuarto_3);
                         }
                         status = "u/o 3° quarto completed.,";
@@ -894,6 +1104,13 @@ public class Scrape implements InitializingBean {
                             uoQuarto_4.setName(value_1);
                             uoQuarto_4.setUnder(value_2);
                             uoQuarto_4.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoQuarto_4.setScrtime(live_matchTime);
+                            } else {
+                                uoQuarto_4.setScrtime(pre_matchTime);
+                            }
+
                             uoQuarto_4Repo.save(uoQuarto_4);
                         }
                         status = "u/o 4° quarto completed.,";
@@ -912,6 +1129,13 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                quartoConPuntPiuAlto.setScrtime(live_matchTime);
+                            } else {
+                                quartoConPuntPiuAlto.setScrtime(pre_matchTime);
+                            }
+
                             quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
                             name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
                             value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
@@ -919,6 +1143,12 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                quartoConPuntPiuAlto.setScrtime(live_matchTime);
+                            } else {
+                                quartoConPuntPiuAlto.setScrtime(pre_matchTime);
+                            }
                             quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
                             name = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
                             value = row.findElement(By.tagName("div")).findElements(By.xpath("./*")).get(2).findElement(By.tagName("a")).findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
@@ -926,6 +1156,12 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                quartoConPuntPiuAlto.setScrtime(live_matchTime);
+                            } else {
+                                quartoConPuntPiuAlto.setScrtime(pre_matchTime);
+                            }
                             quartoConPuntPiuAltoRepo.save(quartoConPuntPiuAlto);
                         }
                         status = "quarto con punt. piu' alto completed.,";
@@ -950,6 +1186,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap_1Quarto.setName(value_1);
                                 ttHandicap_1Quarto.setOne(value_2);
                                 ttHandicap_1Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap_1Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap_1Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
                             }
                         } else {
@@ -967,6 +1210,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap_1Quarto.setName(value_1);
                                 ttHandicap_1Quarto.setOne(value_2);
                                 ttHandicap_1Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap_1Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap_1Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_1QuartoRepo.save(ttHandicap_1Quarto);
                             }
                         }
@@ -993,6 +1243,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1Quarto.setOne(value_1);
                             senzaMargine_12_1Quarto.setMulti(value_2);
                             senzaMargine_12_1Quarto.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_1Quarto.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_1Quarto.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_1QuartoRepo.save(senzaMargine_12_1Quarto);
                         }
                         status = "1X2 1° quarto (senza margini) completed.,";
@@ -1015,6 +1272,13 @@ public class Scrape implements InitializingBean {
                             pariDispari1Quarto.setMatch(matchModal);
                             pariDispari1Quarto.setPari(value_1);
                             pariDispari1Quarto.setDispari(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari1Quarto.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari1Quarto.setScrtime(pre_matchTime);
+                            }
+
                             pariDispari_1QuartoRepo.save(pariDispari1Quarto);
                         }
                         status = "pari/dispari 1° quarto completed.,";
@@ -1039,6 +1303,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2Quarto.setName(value_1);
                                 ttHandicap2Quarto.setOne(value_2);
                                 ttHandicap2Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap2Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap2Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
                             }
                         } else {
@@ -1056,6 +1327,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2Quarto.setName(value_1);
                                 ttHandicap2Quarto.setOne(value_2);
                                 ttHandicap2Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap2Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap2Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_2QuartoRepo.save(ttHandicap2Quarto);
                             }
                         }
@@ -1083,6 +1361,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2Quarto.setOne(value_1);
                             senzaMargine_12_2Quarto.setMulti(value_2);
                             senzaMargine_12_2Quarto.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_2Quarto.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_2Quarto.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_2QuartoRepo.save(senzaMargine_12_2Quarto);
                         }
                         status = "1X2 2° quarto (senza margini) completed.,";
@@ -1105,6 +1390,13 @@ public class Scrape implements InitializingBean {
                             pariDispari2Quarto.setMatch(matchModal);
                             pariDispari2Quarto.setPari(value_1);
                             pariDispari2Quarto.setDispari(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari2Quarto.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari2Quarto.setScrtime(pre_matchTime);
+                            }
+
                             pariDispari2QuartoRepo.save(pariDispari2Quarto);
                         }
                         status = "pari/dispari 2° quarto completed.,";
@@ -1130,6 +1422,14 @@ public class Scrape implements InitializingBean {
                                 ttHandicap3Quarto.setOne(value_2);
                                 ttHandicap3Quarto.setTwo(value_3);
                                 ttHandicap3Quarto.setMatch(matchModal);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap3Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap3Quarto.setScrtime(pre_matchTime);
+                                }
+
+
                                 ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
                             }
                         } else {
@@ -1147,6 +1447,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap3Quarto.setOne(value_2);
                                 ttHandicap3Quarto.setTwo(value_3);
                                 ttHandicap3Quarto.setMatch(matchModal);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap3Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap3Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_3QuartoRepo.save(ttHandicap3Quarto);
                             }
                         }
@@ -1173,6 +1480,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_3Quarto.setOne(value_1);
                             senzaMargine_12_3Quarto.setMulti(value_2);
                             senzaMargine_12_3Quarto.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_3Quarto.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_3Quarto.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_3QuartoRepo.save(senzaMargine_12_3Quarto);
                         }
                         status = "1X2 3° quarto (senza margini) completed.,";
@@ -1195,6 +1509,13 @@ public class Scrape implements InitializingBean {
                             pariDispari3Quarto.setMatch(matchModal);
                             pariDispari3Quarto.setPari(value_1);
                             pariDispari3Quarto.setDispari(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari3Quarto.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari3Quarto.setScrtime(pre_matchTime);
+                            }
+
                             pariDispari3QuartoRepo.save(pariDispari3Quarto);
                         }
                         status = "pari/dispari 3° quarto completed.,";
@@ -1219,6 +1540,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap4Quarto.setName(value_1);
                                 ttHandicap4Quarto.setOne(value_2);
                                 ttHandicap4Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap4Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap4Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
                             }
                         } else {
@@ -1236,6 +1564,13 @@ public class Scrape implements InitializingBean {
                                 ttHandicap4Quarto.setName(value_1);
                                 ttHandicap4Quarto.setOne(value_2);
                                 ttHandicap4Quarto.setTwo(value_3);
+
+                                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                    ttHandicap4Quarto.setScrtime(live_matchTime);
+                                } else {
+                                    ttHandicap4Quarto.setScrtime(pre_matchTime);
+                                }
+
                                 ttHandicap_4QuartoRepo.save(ttHandicap4Quarto);
                             }
                         }
@@ -1262,6 +1597,13 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_4Quarto.setOne(value_1);
                             senzaMargine_12_4Quarto.setMulti(value_2);
                             senzaMargine_12_4Quarto.setTwo(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                senzaMargine_12_4Quarto.setScrtime(live_matchTime);
+                            } else {
+                                senzaMargine_12_4Quarto.setScrtime(pre_matchTime);
+                            }
+
                             senzaMargine_12_4QuartoRepo.save(senzaMargine_12_4Quarto);
                         }
                         status = "1X2 4° quarto (senza margini) completed.,";
@@ -1284,6 +1626,13 @@ public class Scrape implements InitializingBean {
                             pariDispari4Quarto.setMatch(matchModal);
                             pariDispari4Quarto.setPari(value_1);
                             pariDispari4Quarto.setDispari(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                pariDispari4Quarto.setScrtime(live_matchTime);
+                            } else {
+                                pariDispari4Quarto.setScrtime(pre_matchTime);
+                            }
+
                             pariDispari4QuartoRepo.save(pariDispari4Quarto);
                         }
                         status = "pari/dispari 4° quarto completed.,";
@@ -1308,6 +1657,14 @@ public class Scrape implements InitializingBean {
                             uoCaseInclSuppl.setName(value_1);
                             uoCaseInclSuppl.setUnder(value_2);
                             uoCaseInclSuppl.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoCaseInclSuppl.setScrtime(live_matchTime);
+                            } else {
+                                uoCaseInclSuppl.setScrtime(pre_matchTime);
+                            }
+
+
                             uoCaseInclSupplRepo.save(uoCaseInclSuppl);
                         }
                         status = "U/O casa (incl.suppl.) completed.,";
@@ -1332,6 +1689,13 @@ public class Scrape implements InitializingBean {
                             uoOspiteInclSuppl.setName(value_1);
                             uoOspiteInclSuppl.setUnder(value_2);
                             uoOspiteInclSuppl.setOver(value_3);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                uoOspiteInclSuppl.setScrtime(live_matchTime);
+                            } else {
+                                uoOspiteInclSuppl.setScrtime(pre_matchTime);
+                            }
+
                             uoOspiteInclSupplRepo.save(uoOspiteInclSuppl);
                         }
                         status = "U/O ospite (incl.suppl.) completed.,";
@@ -1351,6 +1715,12 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                tempoFinale_1.setScrtime(live_matchTime);
+                            } else {
+                                tempoFinale_1.setScrtime(pre_matchTime);
+                            }
                             tempoFinale_1Repo.save(tempoFinale_1);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1361,6 +1731,13 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                tempoFinale_1.setScrtime(live_matchTime);
+                            } else {
+                                tempoFinale_1.setScrtime(pre_matchTime);
+                            }
                             tempoFinale_1Repo.save(tempoFinale_1);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1371,6 +1748,13 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                tempoFinale_1.setScrtime(live_matchTime);
+                            } else {
+                                tempoFinale_1.setScrtime(pre_matchTime);
+                            }
                             tempoFinale_1Repo.save(tempoFinale_1);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1397,6 +1781,12 @@ public class Scrape implements InitializingBean {
                             primaSquadraSegnare.setMatch(matchModal);
                             primaSquadraSegnare.setTeam1(value_1);
                             primaSquadraSegnare.setTeam2(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                primaSquadraSegnare.setScrtime(live_matchTime);
+                            } else {
+                                primaSquadraSegnare.setScrtime(pre_matchTime);
+                            }
                             primaSquadraSegnareRepo.save(primaSquadraSegnare);
                         }
                         status = "prima squadra a segnare completed.,";
@@ -1418,6 +1808,13 @@ public class Scrape implements InitializingBean {
                             ultimaSquadraSegnare.setMatch(matchModal);
                             ultimaSquadraSegnare.setTeam1(value_1);
                             ultimaSquadraSegnare.setTeam2(value_2);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                ultimaSquadraSegnare.setScrtime(live_matchTime);
+                            } else {
+                                ultimaSquadraSegnare.setScrtime(pre_matchTime);
+                            }
+
                             ultimaSquadraSegnareRepo.save(ultimaSquadraSegnare);
                         }
                         status = "ultima squadra a segnare completed.,";
@@ -1437,6 +1834,13 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                comboMatchUltimoPunto.setScrtime(live_matchTime);
+                            } else {
+                                comboMatchUltimoPunto.setScrtime(pre_matchTime);
+                            }
+
                             comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1447,6 +1851,13 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                comboMatchUltimoPunto.setScrtime(live_matchTime);
+                            } else {
+                                comboMatchUltimoPunto.setScrtime(pre_matchTime);
+                            }
+
                             comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1457,6 +1868,13 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+
+                            if (scrape_type.equalsIgnoreCase("LIVE")) {
+                                comboMatchUltimoPunto.setScrtime(live_matchTime);
+                            } else {
+                                comboMatchUltimoPunto.setScrtime(pre_matchTime);
+                            }
+
                             comboMatchUltimoPuntoRepo.save(comboMatchUltimoPunto);
                             System.err.println("name" + name);
                             System.err.println("value" + value);
@@ -1475,7 +1893,7 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.scrapeOld("CBA", "https://www.eurobet.it/it/scommesse/#!");
-//        this.scrapeOld("NBA", "https://www.eurobet.it/it/scommesse/#!/basket/us-nba/");
+        this.scrapeLive();
+        this.scrapePreMatch();
     }
 }

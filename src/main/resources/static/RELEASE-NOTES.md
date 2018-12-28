@@ -677,7 +677,7 @@ Some updates to docs formatting
 
 **Fixes**
 - Minor Fixes caught with testing suite, related to ensuring proper destroy, init,
-- Minor fixes to edge cases with seting and retrieving internals/settings as default, init, or during run-time on some modules
+- Minor fixes to edge cases with seting and retrieving internals/settings as default, init, or during run-scrtime on some modules
 
 ### Version 0.5.1 - Oct 11, 2013
 
@@ -690,7 +690,7 @@ Some updates to docs formatting
 ### Version 0.5.0 - Oct 10, 2013
 
 **Critical Fixes**
-- Fixes in some UI modules, issue where settings being shared across elements initialized at the same time instead of each instance.
+- Fixes in some UI modules, issue where settings being shared across elements initialized at the same scrtime instead of each instance.
 - Fixes regression where popup was overriding variation class name on positioning
 
 **Fixes**

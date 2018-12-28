@@ -22,10 +22,21 @@ public class TPTI55 {
     @Column(name = "T_PTI_TWO")
     private String two;
 
+    @Column(name = "T_PTI_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_PTI_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

@@ -18,10 +18,21 @@ public class TempoFinale_1 {
     @Column(name = "T_TEMPO_FINALE_1_VALUE")
     private String value;
 
+    @Column(name = "T_TEMPO_FINALE_1_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_TEMPO_FINALE_1_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

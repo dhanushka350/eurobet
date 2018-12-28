@@ -18,11 +18,29 @@ public class TTMatch {
     @Column(name = "T_MATCH_TWO")
     private String two;
 
+    @Column(name = "T_MATCH_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_MATCH")
     private Match match;
 
+    public int getTtmid() {
+        return ttmid;
+    }
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
+
+    public void setTtmid(int ttmid) {
+        this.ttmid = ttmid;
+    }
 
     public int getId() {
         return ttmid;

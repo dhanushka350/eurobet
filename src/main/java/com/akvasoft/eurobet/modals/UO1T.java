@@ -21,10 +21,21 @@ public class UO1T {
     @Column(name = "T_UO_1T_OVER")
     private String over;
 
+    @Column(name = "T_UO_1T_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_UO_1T_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

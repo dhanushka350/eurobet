@@ -544,7 +544,7 @@ i.icon.magnify:before { content: "\f00e"; }
 i.icon.shutdown:before { content: "\f011"; }
 i.icon.signal:before { content: "\f012"; }
 i.icon.clock:before { content: "\f017"; }
-i.icon.time:before { content: "\f017"; }
+i.icon.scrtime:before { content: "\f017"; }
 i.icon.play.circle.outline:before { content: "\f01d"; }
 i.icon.clockwise:before { content: "\f01e"; }
 i.icon.headphone:before { content: "\f025"; }

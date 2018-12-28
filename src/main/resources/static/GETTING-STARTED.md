@@ -17,7 +17,7 @@ Once you're up and running. Navigate to the semantic directory and install the n
 
 ### Installing Semantic
 
-The first time you run gulp you will be greeted with an interactive installer
+The first scrtime you run gulp you will be greeted with an interactive installer
 ```bash
   # install
   gulp

@@ -22,10 +22,21 @@ public class UOQuarto_4 {
     @Column(name = "T_UO_4_QUARTO_OVER")
     private String over;
 
+    @Column(name = "T_UO_4_QUARTO_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_UO_4_QUARTO_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

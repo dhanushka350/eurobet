@@ -21,10 +21,21 @@ public class TTHandicap4Quarto {
     @Column(name = "T_HANDICAP_4QUARTO_TWO")
     private String two;
 
+    @Column(name = "T_HANDICAP_4QUARTO_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_HANDICAP_4QUARTO_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

@@ -28,10 +28,21 @@ public class TTUOInclSuppl {
     @Column(name = "T_UO_INCL_SUPPL_TEAM_TWO_OVER")
     private String teamTwoOver;
 
+    @Column(name = "T_UO_INCL_SUPPL_SCRAPE_TIME")
+    private String scrtime;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "T_UO_INCL_SUPPL_MATCH")
     private Match match;
+
+    public String getScrtime() {
+        return scrtime;
+    }
+
+    public void setScrtime(String scrtime) {
+        this.scrtime = scrtime;
+    }
 
     public int getId() {
         return id;

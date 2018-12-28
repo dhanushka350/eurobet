@@ -25,7 +25,7 @@ npm install
 gulp
 ```
 
-Running gulp for the first time will start the interactive set-up.
+Running gulp for the first scrtime will start the interactive set-up.
 
 This helps you create two important files ``semantic.json`` which stores your folder set-up, and ``themes.config`` a central file for setting ui themes.
 
