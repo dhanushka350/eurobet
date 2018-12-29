@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
 public class Scrape implements InitializingBean {
 
     static String status = "READY";
@@ -113,25 +113,10 @@ public class Scrape implements InitializingBean {
     private ScrapeLinksRepo scrapeLinksRepo;
 
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
-    @ResponseBody
-    private ModelAndView scrape() throws InterruptedException {
-        return new ModelAndView("index");
-    }
-
-    @RequestMapping(value = {"/status"}, method = RequestMethod.GET)
-    @ResponseBody
-    private String status() throws InterruptedException {
-        return status;
-    }
-
     @RequestMapping(value = {"/scrape/league"}, method = RequestMethod.POST)
     @ResponseBody
-    private void scrape(@RequestBody Item item) throws InterruptedException {
-        status = "received league " + item.getLeague() + " and link " + item.getLink() + ",";
-        scrapeOld(item.getLeague(), item.getLink());
-        status = "DONE!,";
-        status = "READY,";
+    private void scrape(@RequestBody List<Item> item) throws InterruptedException {
+        scrape(item);
     }
 
     public FirefoxDriver getDriver() {
@@ -139,7 +124,7 @@ public class Scrape implements InitializingBean {
         FirefoxOptions options = new FirefoxOptions();
 //        FirefoxProfile p = new FirefoxProfile();
 //        p.setPreference("javascript.enabled", false);
-        options.setHeadless(false);
+        options.setHeadless(true);
 //        options.setProfile(p);
 
 
@@ -176,10 +161,10 @@ public class Scrape implements InitializingBean {
                     this.goToLive(driver, links.getName());
                 }
 
-                Thread.sleep(100000);
+                Thread.sleep(300000);
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+//                e.printStackTrace();
             }
 
         }).start();
@@ -198,27 +183,29 @@ public class Scrape implements InitializingBean {
                     this.scrapeOld(links.getName(), links.getValue());
                 }
 
-                Thread.sleep(1200000);
+                Thread.sleep(600000);
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+//                e.printStackTrace();
             }
 
         }).start();
     }
 
 
-    public void scrapeOld(String league, String link) throws InterruptedException {
+    public void scrapeOld(String league, String link) throws Exception {
         FirefoxDriver driver = getDriver();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
+        System.err.println(league + "=====================================================================================");
         driver.get(link);
         Thread.sleep(2000);
         scrapeMainTable(driver, "PRE MATCH");
     }
 
-    private void goToLive(FirefoxDriver driver, String league) throws InterruptedException {
+    private void goToLive(FirefoxDriver driver, String league) throws Exception {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         driver.get("https://www.eurobet.it/it/scommesse/#!");
+        Thread.sleep(5000);
         WebElement live = driver.findElementByXPath("/html/body/header/div/nav/ul/li[2]/a");
         jse.executeScript("arguments[0].click();", live);
         Thread.sleep(5000);
@@ -240,20 +227,22 @@ public class Scrape implements InitializingBean {
                             scrapeInnerTables(driver, "LIVE");
 //                            break;
                         }
-                        ;
-
                     }
                 }
-
             }
         }
-
     }
 
-    private void scrapeMainTable(FirefoxDriver driver, String type) throws InterruptedException {
+    private void scrapeMainTable(FirefoxDriver driver, String type) throws Exception {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         WebElement centerDiv = driver.findElementByClassName("main-content-wrapper");
-        WebElement tables = centerDiv.findElement(By.className("baseAnimation"));
+        WebElement tables = null;
+        try {
+            tables = centerDiv.findElement(By.className("baseAnimation"));
+        } catch (NoSuchElementException r) {
+            return;
+        }
+
         List<String> matchList = new ArrayList<>();
 
         for (WebElement table : tables.findElement(By.tagName("div")).findElement(By.tagName("div")).findElements(By.xpath("./*"))) {
@@ -261,15 +250,13 @@ public class Scrape implements InitializingBean {
                 Thread.sleep(2000);
                 try {
                     WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
+                    jse.executeScript("arguments[0].scrollIntoView(true);", row);
                     System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
                     matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
                 } catch (NoSuchElementException e) {
-                    WebElement row = element.findElement(By.className("event-row")).findElement(By.className("event-wrapper-info")).findElement(By.className("event-players"));
-                    System.err.println("collected " + row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
-                    matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
+                    System.err.println(element.getAttribute("innerHTML"));
                 }
             }
-
         }
 
         status = "found " + matchList.size() + " matches,";
@@ -277,10 +264,9 @@ public class Scrape implements InitializingBean {
             driver.get(s);
             scrapeInnerTables(driver, type);
         }
-
     }
 
-    private boolean scrapeInnerTables(FirefoxDriver driver, String scrape_type) throws InterruptedException {
+    private boolean scrapeInnerTables(FirefoxDriver driver, String scrape_type) throws Exception {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         Match matchModal = null;
         TTMatch ttMatch = null;
@@ -1889,7 +1875,7 @@ public class Scrape implements InitializingBean {
                         status = "combo match + ultimo punto completed.,";
                     }
                 }
-                driver.close();
+
                 break;
             }
         }
