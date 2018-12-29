@@ -116,7 +116,7 @@ public class Scrape implements InitializingBean {
     @RequestMapping(value = {"/scrape/league"}, method = RequestMethod.POST)
     @ResponseBody
     private void scrape(@RequestBody List<Item> item) throws InterruptedException {
-        scrape(item);
+        scrapeList(item);
     }
 
     public FirefoxDriver getDriver() {
