@@ -150,21 +150,26 @@ public class Scrape implements InitializingBean {
     public void scrapeLive() {
         List<ScrapeLinks> all = scrapeLinksRepo.findAll();
         new Thread(() -> {
+            while (true) {
+                System.err.println("LIVE THREAD STARTED");
+                FirefoxDriver driver = getDriver();
+                SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+                live_matchTime = time_formatter.format(System.currentTimeMillis());
+                try {
 
-            System.err.println("LIVE THREAD STARTED");
-            FirefoxDriver driver = getDriver();
-            SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-            live_matchTime = time_formatter.format(System.currentTimeMillis());
-            try {
+                    for (ScrapeLinks links : all) {
+                        try {
+                            this.goToLive(driver, links.getName());
+                        } catch (Exception r) {
+                            r.printStackTrace();
+                        }
+                    }
 
-                for (ScrapeLinks links : all) {
-                    this.goToLive(driver, links.getName());
+                    Thread.sleep(200000);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                Thread.sleep(300000);
-
-            } catch (Exception e) {
-//                e.printStackTrace();
             }
 
         }).start();
@@ -173,38 +178,49 @@ public class Scrape implements InitializingBean {
     public void scrapePreMatch() {
         List<ScrapeLinks> all = scrapeLinksRepo.findAll();
         new Thread(() -> {
-            System.err.println("PRE MATCH THREAD STARTED");
-            FirefoxDriver driver = getDriver();
-            SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-            pre_matchTime = time_formatter.format(System.currentTimeMillis());
-            try {
+            while (true) {
+                System.err.println("PRE MATCH THREAD STARTED");
+                FirefoxDriver driver = getDriver();
+                SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+                pre_matchTime = time_formatter.format(System.currentTimeMillis());
+                try {
 
-                for (ScrapeLinks links : all) {
-                    this.scrapeOld(links.getName(), links.getValue());
+                    for (ScrapeLinks links : all) {
+                        try {
+                            this.scrapeOld(links.getName(), links.getValue(), driver);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Thread.sleep(300000);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                Thread.sleep(600000);
-
-            } catch (Exception e) {
-//                e.printStackTrace();
             }
 
         }).start();
     }
 
 
-    public void scrapeOld(String league, String link) throws Exception {
-        FirefoxDriver driver = getDriver();
-        JavascriptExecutor jse = (JavascriptExecutor) driver;
-        System.err.println(league + "=====================================================================================");
-        driver.get(link);
-        Thread.sleep(2000);
-        scrapeMainTable(driver, "PRE MATCH");
+    public void scrapeOld(String league, String link,FirefoxDriver driver) throws Exception {
+        try {
+//            FirefoxDriver driver = getDriver();
+            JavascriptExecutor jse = (JavascriptExecutor) driver;
+            System.err.println(league + "=====================================================================================");
+            driver.get(link);
+            Thread.sleep(2000);
+            scrapeMainTable(driver, "PRE MATCH");
+//            driver.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void goToLive(FirefoxDriver driver, String league) throws Exception {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
-        driver.get("https://www.eurobet.it/it/scommesse/#!");
+        driver.get("https://www.eurobet.it");
         Thread.sleep(5000);
         WebElement live = driver.findElementByXPath("/html/body/header/div/nav/ul/li[2]/a");
         jse.executeScript("arguments[0].click();", live);
@@ -224,7 +240,12 @@ public class Scrape implements InitializingBean {
                         for (WebElement li : element.findElement(By.tagName("ul")).findElements(By.xpath("./*"))) {
                             jse.executeScript("arguments[0].click();", li.findElement(By.className("match-row")).findElement(By.className("match")).findElement(By.tagName("a")));
                             Thread.sleep(1000);
-                            scrapeInnerTables(driver, "LIVE");
+                            try {
+                                scrapeInnerTables(driver, "LIVE");
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"+live);
 //                            break;
                         }
                     }
@@ -255,14 +276,20 @@ public class Scrape implements InitializingBean {
                     matchList.add(row.findElement(By.tagName("span")).findElement(By.tagName("a")).getAttribute("href"));
                 } catch (NoSuchElementException e) {
                     System.err.println(element.getAttribute("innerHTML"));
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         }
 
         status = "found " + matchList.size() + " matches,";
         for (String s : matchList) {
-            driver.get(s);
-            scrapeInnerTables(driver, type);
+            try {
+                driver.get(s);
+                scrapeInnerTables(driver, type);
+            }catch (Exception r){
+                r.printStackTrace();
+            }
         }
     }
 
