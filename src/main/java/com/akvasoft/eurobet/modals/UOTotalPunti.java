@@ -33,6 +33,19 @@ public class UOTotalPunti {
     @JoinColumn(name = "MATCH_ID")
     private Match match;
 
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "SCRAPE_ID")
+    private Scrape scrape;
+
+    public Scrape getScrape() {
+        return scrape;
+    }
+
+    public void setScrape(Scrape scrape) {
+        this.scrape = scrape;
+    }
+
     public String getScrtime() {
         return scrtime;
     }

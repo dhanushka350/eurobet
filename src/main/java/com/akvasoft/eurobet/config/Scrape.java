@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +112,8 @@ public class Scrape implements InitializingBean {
     private ScrapeLinksRepo scrapeLinksRepo;
     @Autowired
     private ScoureRepo scoureRepo;
+    @Autowired
+    private ScrapeRepo scrapeRepo;
 
 
     @RequestMapping(value = {"/scrape/league"}, method = RequestMethod.POST)
@@ -152,7 +156,7 @@ public class Scrape implements InitializingBean {
             List<ScrapeLinks> all = null;
             FirefoxDriver driver = getDriver();
             while (true) {
-                all=scrapeLinksRepo.findAll();
+                all = scrapeLinksRepo.findAll();
                 System.err.println("LIVE THREAD STARTED");
                 SimpleDateFormat time_formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
                 live_matchTime = time_formatter.format(System.currentTimeMillis());
@@ -313,6 +317,8 @@ public class Scrape implements InitializingBean {
 
     private boolean scrapeInnerTables(FirefoxDriver driver, String scrape_type) throws Exception {
         JavascriptExecutor jse = (JavascriptExecutor) driver;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
         Match matchModal = null;
         TTMatch ttMatch = null;
         TTHandicap ttHandicap = null;
@@ -356,6 +362,10 @@ public class Scrape implements InitializingBean {
         ComboMatchUltimoPunto comboMatchUltimoPunto = null;
         Scoure teamScoures = null;
 
+        com.akvasoft.eurobet.modals.Scrape scrape = new com.akvasoft.eurobet.modals.Scrape();
+        scrape.setTime(dtf.format(now));
+        scrapeRepo.save(scrape);
+        
         Thread.sleep(2000);
         WebElement match = null;
         try {
@@ -388,6 +398,7 @@ public class Scrape implements InitializingBean {
             matchModal.setOne(matchTitle.split("-")[0].trim());
             matchModal.setTwo(matchTitle.split("-")[1].trim());
             matchModal.setStatus(scrape_type);
+            matchModal.setScrape(scrape);
             matchRepo.save(matchModal);
         }
 
@@ -426,6 +437,7 @@ public class Scrape implements InitializingBean {
                             teamScoures.setMatch(matchModal);
                             teamScoures.setOne(t1);
                             teamScoures.setTwo(t2);
+                            teamScoures.setScrape(scrape);
                             scoureRepo.save(teamScoures);
                         } catch (Exception t) {
                             t.printStackTrace();
@@ -447,6 +459,7 @@ public class Scrape implements InitializingBean {
                             ttMatch.setMatch(matchModal);
                             ttMatch.setOne(value_1);
                             ttMatch.setTwo(value_2);
+                            ttMatch.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 ttMatch.setScrtime(live_matchTime);
@@ -478,6 +491,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap.setName(value_1);
                                 ttHandicap.setOne(value_2);
                                 ttHandicap.setTwo(value_3);
+                                ttHandicap.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap.setScrtime(live_matchTime);
@@ -502,6 +516,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap.setName(value_1);
                                 ttHandicap.setOne(value_2);
                                 ttHandicap.setTwo(value_3);
+                                ttHandicap.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap.setScrtime(live_matchTime);
@@ -533,7 +548,7 @@ public class Scrape implements InitializingBean {
                             tpti55.setOne(value_1);
                             tpti55.setMultiple(value_2);
                             tpti55.setTwo(value_3);
-
+                            tpti55.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 tpti55.setScrtime(live_matchTime);
                             } else {
@@ -563,6 +578,7 @@ public class Scrape implements InitializingBean {
                             tempiRegolam.setOne(value_1);
                             tempiRegolam.setMultiple(value_2);
                             tempiRegolam.setTwo(value_3);
+                            tempiRegolam.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 tempiRegolam.setScrtime(live_matchTime);
@@ -590,7 +606,7 @@ public class Scrape implements InitializingBean {
                             supplementari.setMatch(matchModal);
                             supplementari.setSl(sl);
                             supplementari.setNo(no);
-
+                            supplementari.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 supplementari.setScrtime(live_matchTime);
                             } else {
@@ -627,7 +643,7 @@ public class Scrape implements InitializingBean {
                             ttuoInclSuppl.setTeamOneOver(team_1_over);
                             ttuoInclSuppl.setTeamTwoUnder(team_2_under);
                             ttuoInclSuppl.setTeamTwoOver(team_2_over);
-
+                            ttuoInclSuppl.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 ttuoInclSuppl.setScrtime(live_matchTime);
                             } else {
@@ -659,7 +675,7 @@ public class Scrape implements InitializingBean {
                             uoInclSuppl.setName(value_1);
                             uoInclSuppl.setUnder(under);
                             uoInclSuppl.setOver(over);
-
+                            uoInclSuppl.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoInclSuppl.setScrtime(live_matchTime);
                             } else {
@@ -696,7 +712,7 @@ public class Scrape implements InitializingBean {
                             uoTotalPunti.setUnder(under);
                             uoTotalPunti.setOver(over);
                             uoTotalPunti.setEsattamente(ESATTAMENTE);
-
+                            uoTotalPunti.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoTotalPunti.setScrtime(live_matchTime);
                             } else {
@@ -726,7 +742,7 @@ public class Scrape implements InitializingBean {
                             pariDispariInchSuppl.setMatch(matchModal);
                             pariDispariInchSuppl.setPari(PARI);
                             pariDispariInchSuppl.setDispari(DISPARI);
-
+                            pariDispariInchSuppl.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispariInchSuppl.setScrtime(live_matchTime);
                             } else {
@@ -757,7 +773,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap1T.setName(value_1);
                                 ttHandicap1T.setOne(value_2);
                                 ttHandicap1T.setTwo(value_2);
-
+                                ttHandicap1T.setScrape(scrape);
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap1T.setScrtime(live_matchTime);
                                 } else {
@@ -781,7 +797,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap1T.setName(value_1);
                                 ttHandicap1T.setOne(value_2);
                                 ttHandicap1T.setTwo(value_2);
-
+                                ttHandicap1T.setScrape(scrape);
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap1T.setScrtime(live_matchTime);
                                 } else {
@@ -815,7 +831,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1T.setOne(value_1);
                             senzaMargine_12_1T.setMulti(value_2);
                             senzaMargine_12_1T.setTwo(value_3);
-
+                            senzaMargine_12_1T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_1T.setScrtime(live_matchTime);
                             } else {
@@ -848,7 +864,7 @@ public class Scrape implements InitializingBean {
                             uo1T.setName(value_1);
                             uo1T.setUnder(under);
                             uo1T.setOver(over);
-
+                            uo1T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uo1T.setScrtime(live_matchTime);
                             } else {
@@ -878,7 +894,7 @@ public class Scrape implements InitializingBean {
                             pariDispari1T.setMatch(matchModal);
                             pariDispari1T.setPari(pari);
                             pariDispari1T.setDispari(dispari);
-
+                            pariDispari1T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari1T.setScrtime(live_matchTime);
                             } else {
@@ -907,7 +923,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2T.setName(value_1);
                                 ttHandicap2T.setOne(value_2);
                                 ttHandicap2T.setTwo(value_3);
-
+                                ttHandicap2T.setScrape(scrape);
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap2T.setScrtime(live_matchTime);
                                 } else {
@@ -931,7 +947,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2T.setName(value_1);
                                 ttHandicap2T.setOne(value_2);
                                 ttHandicap2T.setTwo(value_3);
-
+                                ttHandicap2T.setScrape(scrape);
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap2T.setScrtime(live_matchTime);
                                 } else {
@@ -964,7 +980,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2T.setOne(value_1);
                             senzaMargine_12_2T.setMulti(value_2);
                             senzaMargine_12_2T.setTwo(value_3);
-
+                            senzaMargine_12_2T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_2T.setScrtime(live_matchTime);
                             } else {
@@ -996,7 +1012,7 @@ public class Scrape implements InitializingBean {
                             uo2T.setName(value_1);
                             uo2T.setOver(over);
                             uo2T.setUnder(under);
-
+                            uo2T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uo2T.setScrtime(live_matchTime);
                             } else {
@@ -1025,7 +1041,7 @@ public class Scrape implements InitializingBean {
                             pariDispari2T.setMatch(matchModal);
                             pariDispari2T.setPari(PARI);
                             pariDispari2T.setDispari(DISPARI);
-
+                            pariDispari2T.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari2T.setScrtime(live_matchTime);
                             } else {
@@ -1058,7 +1074,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_1.setName(value_1);
                             uoQuarto_1.setUnder(value_2);
                             uoQuarto_1.setOver(value_3);
-
+                            uoQuarto_1.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoQuarto_1.setScrtime(live_matchTime);
                             } else {
@@ -1091,7 +1107,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_2.setName(value_1);
                             uoQuarto_2.setUnder(value_2);
                             uoQuarto_2.setOver(value_3);
-
+                            uoQuarto_2.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoQuarto_2.setScrtime(live_matchTime);
                             } else {
@@ -1123,7 +1139,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_3.setName(value_1);
                             uoQuarto_3.setUnder(value_2);
                             uoQuarto_3.setOver(value_3);
-
+                            uoQuarto_3.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoQuarto_3.setScrtime(live_matchTime);
                             } else {
@@ -1155,7 +1171,7 @@ public class Scrape implements InitializingBean {
                             uoQuarto_4.setName(value_1);
                             uoQuarto_4.setUnder(value_2);
                             uoQuarto_4.setOver(value_3);
-
+                            uoQuarto_4.setScrape(scrape);
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoQuarto_4.setScrtime(live_matchTime);
                             } else {
@@ -1180,6 +1196,7 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAlto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 quartoConPuntPiuAlto.setScrtime(live_matchTime);
@@ -1194,6 +1211,7 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAlto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 quartoConPuntPiuAlto.setScrtime(live_matchTime);
@@ -1207,6 +1225,7 @@ public class Scrape implements InitializingBean {
                             quartoConPuntPiuAlto.setMatch(matchModal);
                             quartoConPuntPiuAlto.setName(name);
                             quartoConPuntPiuAlto.setValue(value);
+                            quartoConPuntPiuAlto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 quartoConPuntPiuAlto.setScrtime(live_matchTime);
@@ -1237,6 +1256,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap_1Quarto.setName(value_1);
                                 ttHandicap_1Quarto.setOne(value_2);
                                 ttHandicap_1Quarto.setTwo(value_3);
+                                ttHandicap_1Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap_1Quarto.setScrtime(live_matchTime);
@@ -1261,6 +1281,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap_1Quarto.setName(value_1);
                                 ttHandicap_1Quarto.setOne(value_2);
                                 ttHandicap_1Quarto.setTwo(value_3);
+                                ttHandicap_1Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap_1Quarto.setScrtime(live_matchTime);
@@ -1294,6 +1315,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_1Quarto.setOne(value_1);
                             senzaMargine_12_1Quarto.setMulti(value_2);
                             senzaMargine_12_1Quarto.setTwo(value_3);
+                            senzaMargine_12_1Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_1Quarto.setScrtime(live_matchTime);
@@ -1323,6 +1345,7 @@ public class Scrape implements InitializingBean {
                             pariDispari1Quarto.setMatch(matchModal);
                             pariDispari1Quarto.setPari(value_1);
                             pariDispari1Quarto.setDispari(value_2);
+                            pariDispari1Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari1Quarto.setScrtime(live_matchTime);
@@ -1354,6 +1377,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2Quarto.setName(value_1);
                                 ttHandicap2Quarto.setOne(value_2);
                                 ttHandicap2Quarto.setTwo(value_3);
+                                ttHandicap2Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap2Quarto.setScrtime(live_matchTime);
@@ -1378,6 +1402,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap2Quarto.setName(value_1);
                                 ttHandicap2Quarto.setOne(value_2);
                                 ttHandicap2Quarto.setTwo(value_3);
+                                ttHandicap2Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap2Quarto.setScrtime(live_matchTime);
@@ -1412,6 +1437,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_2Quarto.setOne(value_1);
                             senzaMargine_12_2Quarto.setMulti(value_2);
                             senzaMargine_12_2Quarto.setTwo(value_3);
+                            senzaMargine_12_2Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_2Quarto.setScrtime(live_matchTime);
@@ -1441,6 +1467,7 @@ public class Scrape implements InitializingBean {
                             pariDispari2Quarto.setMatch(matchModal);
                             pariDispari2Quarto.setPari(value_1);
                             pariDispari2Quarto.setDispari(value_2);
+                            pariDispari2Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari2Quarto.setScrtime(live_matchTime);
@@ -1473,6 +1500,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap3Quarto.setOne(value_2);
                                 ttHandicap3Quarto.setTwo(value_3);
                                 ttHandicap3Quarto.setMatch(matchModal);
+                                ttHandicap3Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap3Quarto.setScrtime(live_matchTime);
@@ -1498,6 +1526,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap3Quarto.setOne(value_2);
                                 ttHandicap3Quarto.setTwo(value_3);
                                 ttHandicap3Quarto.setMatch(matchModal);
+                                ttHandicap3Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap3Quarto.setScrtime(live_matchTime);
@@ -1531,6 +1560,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_3Quarto.setOne(value_1);
                             senzaMargine_12_3Quarto.setMulti(value_2);
                             senzaMargine_12_3Quarto.setTwo(value_3);
+                            senzaMargine_12_3Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_3Quarto.setScrtime(live_matchTime);
@@ -1560,6 +1590,7 @@ public class Scrape implements InitializingBean {
                             pariDispari3Quarto.setMatch(matchModal);
                             pariDispari3Quarto.setPari(value_1);
                             pariDispari3Quarto.setDispari(value_2);
+                            pariDispari3Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari3Quarto.setScrtime(live_matchTime);
@@ -1591,6 +1622,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap4Quarto.setName(value_1);
                                 ttHandicap4Quarto.setOne(value_2);
                                 ttHandicap4Quarto.setTwo(value_3);
+                                ttHandicap4Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap4Quarto.setScrtime(live_matchTime);
@@ -1615,6 +1647,7 @@ public class Scrape implements InitializingBean {
                                 ttHandicap4Quarto.setName(value_1);
                                 ttHandicap4Quarto.setOne(value_2);
                                 ttHandicap4Quarto.setTwo(value_3);
+                                ttHandicap4Quarto.setScrape(scrape);
 
                                 if (scrape_type.equalsIgnoreCase("LIVE")) {
                                     ttHandicap4Quarto.setScrtime(live_matchTime);
@@ -1648,6 +1681,7 @@ public class Scrape implements InitializingBean {
                             senzaMargine_12_4Quarto.setOne(value_1);
                             senzaMargine_12_4Quarto.setMulti(value_2);
                             senzaMargine_12_4Quarto.setTwo(value_3);
+                            senzaMargine_12_4Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 senzaMargine_12_4Quarto.setScrtime(live_matchTime);
@@ -1677,6 +1711,7 @@ public class Scrape implements InitializingBean {
                             pariDispari4Quarto.setMatch(matchModal);
                             pariDispari4Quarto.setPari(value_1);
                             pariDispari4Quarto.setDispari(value_2);
+                            pariDispari4Quarto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 pariDispari4Quarto.setScrtime(live_matchTime);
@@ -1708,6 +1743,7 @@ public class Scrape implements InitializingBean {
                             uoCaseInclSuppl.setName(value_1);
                             uoCaseInclSuppl.setUnder(value_2);
                             uoCaseInclSuppl.setOver(value_3);
+                            uoCaseInclSuppl.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoCaseInclSuppl.setScrtime(live_matchTime);
@@ -1740,6 +1776,7 @@ public class Scrape implements InitializingBean {
                             uoOspiteInclSuppl.setName(value_1);
                             uoOspiteInclSuppl.setUnder(value_2);
                             uoOspiteInclSuppl.setOver(value_3);
+                            uoOspiteInclSuppl.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 uoOspiteInclSuppl.setScrtime(live_matchTime);
@@ -1766,6 +1803,7 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+                            tempoFinale_1.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 tempoFinale_1.setScrtime(live_matchTime);
@@ -1782,6 +1820,7 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+                            tempoFinale_1.setScrape(scrape);
 
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
@@ -1799,6 +1838,7 @@ public class Scrape implements InitializingBean {
                             tempoFinale_1.setMatch(matchModal);
                             tempoFinale_1.setName(name);
                             tempoFinale_1.setValue(value);
+                            tempoFinale_1.setScrape(scrape);
 
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
@@ -1832,6 +1872,7 @@ public class Scrape implements InitializingBean {
                             primaSquadraSegnare.setMatch(matchModal);
                             primaSquadraSegnare.setTeam1(value_1);
                             primaSquadraSegnare.setTeam2(value_2);
+                            primaSquadraSegnare.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 primaSquadraSegnare.setScrtime(live_matchTime);
@@ -1859,6 +1900,7 @@ public class Scrape implements InitializingBean {
                             ultimaSquadraSegnare.setMatch(matchModal);
                             ultimaSquadraSegnare.setTeam1(value_1);
                             ultimaSquadraSegnare.setTeam2(value_2);
+                            ultimaSquadraSegnare.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 ultimaSquadraSegnare.setScrtime(live_matchTime);
@@ -1885,6 +1927,7 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPunto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 comboMatchUltimoPunto.setScrtime(live_matchTime);
@@ -1902,6 +1945,7 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPunto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 comboMatchUltimoPunto.setScrtime(live_matchTime);
@@ -1919,6 +1963,7 @@ public class Scrape implements InitializingBean {
                             comboMatchUltimoPunto.setMatch(matchModal);
                             comboMatchUltimoPunto.setName(name);
                             comboMatchUltimoPunto.setValue(value);
+                            comboMatchUltimoPunto.setScrape(scrape);
 
                             if (scrape_type.equalsIgnoreCase("LIVE")) {
                                 comboMatchUltimoPunto.setScrtime(live_matchTime);
