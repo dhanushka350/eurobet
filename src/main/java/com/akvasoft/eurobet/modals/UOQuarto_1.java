@@ -27,7 +27,7 @@ public class UOQuarto_1 {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_UO_1_QUARTO_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

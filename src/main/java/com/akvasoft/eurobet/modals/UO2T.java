@@ -26,7 +26,7 @@ public class UO2T {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_UO_2T_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

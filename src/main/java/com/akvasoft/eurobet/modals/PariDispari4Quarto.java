@@ -23,7 +23,7 @@ public class PariDispari4Quarto {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_PARI_DISPARI_4QUARTO_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

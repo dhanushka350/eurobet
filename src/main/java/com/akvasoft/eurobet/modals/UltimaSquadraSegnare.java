@@ -23,7 +23,7 @@ public class UltimaSquadraSegnare {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_ULTIMA_SQUADRA_SEGNARE_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

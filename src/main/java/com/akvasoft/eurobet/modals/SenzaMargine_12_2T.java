@@ -26,7 +26,7 @@ public class SenzaMargine_12_2T {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_12_2T_SENZA_MARGINE_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

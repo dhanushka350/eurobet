@@ -23,7 +23,7 @@ public class ComboMatchUltimoPunto {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_COMBO_MATCH_ULTIMO_PUNTO_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

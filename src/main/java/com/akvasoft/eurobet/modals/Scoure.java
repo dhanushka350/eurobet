@@ -20,7 +20,7 @@ public class Scoure {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_SCOURE_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public int getId() {

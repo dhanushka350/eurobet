@@ -23,7 +23,7 @@ public class PrimaSquadraSegnare {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_PRIMA_SQUADRA_SEGNARE_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public int getId() {

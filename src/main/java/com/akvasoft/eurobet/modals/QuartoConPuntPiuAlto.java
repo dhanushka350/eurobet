@@ -23,7 +23,7 @@ public class QuartoConPuntPiuAlto {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_QUARTO_CON_PUNT_PIU_ALTO_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {

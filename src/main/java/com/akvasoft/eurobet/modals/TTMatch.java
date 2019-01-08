@@ -23,7 +23,7 @@ public class TTMatch {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "T_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public int getTtmid() {

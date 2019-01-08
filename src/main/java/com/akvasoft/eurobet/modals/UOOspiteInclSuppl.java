@@ -27,7 +27,7 @@ public class UOOspiteInclSuppl {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "UO_OSPITE_INCL_SUPPL_MATCH")
+    @JoinColumn(name = "MATCH_ID")
     private Match match;
 
     public String getScrtime() {
