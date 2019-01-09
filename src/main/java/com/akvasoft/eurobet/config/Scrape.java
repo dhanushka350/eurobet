@@ -310,6 +310,7 @@ public class Scrape implements InitializingBean {
         for (String s : matchList) {
             try {
                 driver.get(s);
+                Thread.sleep(1000);
                 scrapeInnerTables(driver, type);
             } catch (Exception r) {
                 r.printStackTrace();
@@ -396,6 +397,10 @@ public class Scrape implements InitializingBean {
             } else {
                 status = "already scraped";
                 System.out.println("already scraped.. skipping");
+
+                scrapeMatch.setMatch(matchModal);
+                scrapeMatch.setScrape(scrape);
+                scrapeMatchRepo.save(scrapeMatch);
 //                return true;
             }
         } else {
