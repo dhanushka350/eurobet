@@ -270,8 +270,8 @@ public class Scrape implements InitializingBean {
                                 liveScourTeam1 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
                                 liveScourTeam2 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
                                 scrapeInnerTables(driver, "LIVE");
-                                liveScourTeam1 = "0";
-                                liveScourTeam2 = "0";
+                                liveScourTeam1 = "";
+                                liveScourTeam2 = "";
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
