@@ -18,9 +18,6 @@ public class Scrape {
     @Column(name = "T_SCRAPE_TIME")
     private String time;
 
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "scrape", fetch = FetchType.LAZY)
-    private List<Match> matches = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -38,11 +35,4 @@ public class Scrape {
         this.time = time;
     }
 
-    public List<Match> getMatches() {
-        return matches;
-    }
-
-    public void setMatches(List<Match> matches) {
-        this.matches = matches;
-    }
 }

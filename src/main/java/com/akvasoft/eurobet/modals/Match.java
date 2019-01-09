@@ -30,18 +30,6 @@ public class Match {
     @Column(name = "T_MATCH_STATUS")
     private String status;
 
-    @JsonBackReference
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "SCRAPE_ID")
-    private Scrape scrape;
-
-    public Scrape getScrape() {
-        return scrape;
-    }
-
-    public void setScrape(Scrape scrape) {
-        this.scrape = scrape;
-    }
 
     public List<UltimaSquadraSegnare> getUltimaSquadraSegnares() {
         return ultimaSquadraSegnares;

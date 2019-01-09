@@ -114,6 +114,8 @@ public class Scrape implements InitializingBean {
     private ScoureRepo scoureRepo;
     @Autowired
     private ScrapeRepo scrapeRepo;
+    @Autowired
+    private ScrapeMatchRepo scrapeMatchRepo;
 
 
     @RequestMapping(value = {"/scrape/league"}, method = RequestMethod.POST)
@@ -362,10 +364,12 @@ public class Scrape implements InitializingBean {
         ComboMatchUltimoPunto comboMatchUltimoPunto = null;
         Scoure teamScoures = null;
 
+
+        ScrapeMatch scrapeMatch = new ScrapeMatch();
         com.akvasoft.eurobet.modals.Scrape scrape = new com.akvasoft.eurobet.modals.Scrape();
         scrape.setTime(dtf.format(now));
-        scrapeRepo.save(scrape);
-        
+        scrape = scrapeRepo.save(scrape);
+
         Thread.sleep(2000);
         WebElement match = null;
         try {
@@ -385,6 +389,10 @@ public class Scrape implements InitializingBean {
             if (scrape_type.equalsIgnoreCase("LIVE") && matchModal.getStatus().equalsIgnoreCase("PRE MATCH")) {
                 matchModal.setStatus("PRE MATCH END");
                 matchRepo.save(matchModal);
+
+                scrapeMatch.setMatch(matchModal);
+                scrapeMatch.setScrape(scrape);
+                scrapeMatchRepo.save(scrapeMatch);
             } else {
                 status = "already scraped";
                 System.out.println("already scraped.. skipping");
@@ -398,8 +406,11 @@ public class Scrape implements InitializingBean {
             matchModal.setOne(matchTitle.split("-")[0].trim());
             matchModal.setTwo(matchTitle.split("-")[1].trim());
             matchModal.setStatus(scrape_type);
-            matchModal.setScrape(scrape);
-            matchRepo.save(matchModal);
+            matchModal = matchRepo.save(matchModal);
+
+            scrapeMatch.setMatch(matchModal);
+            scrapeMatch.setScrape(scrape);
+            scrapeMatchRepo.save(scrapeMatch);
         }
 
         status = "scraping Team 1 - " + team1 + " Team 2 - " + team2;
