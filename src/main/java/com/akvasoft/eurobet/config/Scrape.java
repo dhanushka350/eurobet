@@ -26,6 +26,8 @@ public class Scrape implements InitializingBean {
     static String status = "READY";
     static String pre_matchTime = "";
     static String live_matchTime = "";
+    String liveScourTeam1 = "0";
+    String liveScourTeam2 = "0";
     @Autowired
     private com.akvasoft.eurobet.repo.Match matchRepo;
     @Autowired
@@ -248,16 +250,16 @@ public class Scrape implements InitializingBean {
         Thread.sleep(5000);
         WebElement live = driver.findElementByXPath("/html/body/header/div/nav/ul/li[2]/a");
         jse.executeScript("arguments[0].click();", live);
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         boolean found = false;
         for (WebElement sport : driver.findElementByXPath("/html/body/div[4]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul/div/ul").findElements(By.xpath("./*"))) {
             System.out.println(sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText") + "**");
             if (sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText").equalsIgnoreCase("Basket")) {
                 jse.executeScript("arguments[0].click();", sport.findElement(By.tagName("a")));
-
-
                 for (WebElement element : sport.findElements(By.xpath("./*")).get(1).findElements(By.xpath("./*"))) {
+                    System.err.println(element.findElement(By.tagName("li")).findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText") + "=========================+++" + league);
                     if (element.findElement(By.tagName("li")).findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase(league)) {
+
                         jse.executeScript("arguments[0].click();", element.findElement(By.tagName("li")).findElement(By.tagName("a")));
                         Thread.sleep(5000);
 
@@ -265,7 +267,11 @@ public class Scrape implements InitializingBean {
                             jse.executeScript("arguments[0].click();", li.findElement(By.className("match-row")).findElement(By.className("match")).findElement(By.tagName("a")));
                             Thread.sleep(1000);
                             try {
+                                liveScourTeam1 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
+                                liveScourTeam2 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
                                 scrapeInnerTables(driver, "LIVE");
+                                liveScourTeam1 = "0";
+                                liveScourTeam2 = "0";
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -362,7 +368,7 @@ public class Scrape implements InitializingBean {
         PrimaSquadraSegnare primaSquadraSegnare = null;
         UltimaSquadraSegnare ultimaSquadraSegnare = null;
         ComboMatchUltimoPunto comboMatchUltimoPunto = null;
-        Scoure teamScoures = null;
+
 
 
         ScrapeMatch scrapeMatch = new ScrapeMatch();
@@ -427,7 +433,7 @@ public class Scrape implements InitializingBean {
             if (ul.getAttribute("innerText").equalsIgnoreCase("TUTTE")) {
                 jse.executeScript("arguments[0].scrollIntoView(true);", ul);
                 jse.executeScript("arguments[0].click();", ul);
-                Thread.sleep(1000);
+                Thread.sleep(5000);
                 List<WebElement> elements = null;
                 try {
                     elements = driver.findElementByXPath("/html/body/div[5]/div[2]/div/div/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"));
@@ -437,18 +443,21 @@ public class Scrape implements InitializingBean {
                 for (WebElement table : elements) {
 
                     if (!table.getAttribute("class").equalsIgnoreCase("box-container")) {
+                        System.err.println("==============+++++++++++++++++===========________________++++++++++++++++++++++===");
                         continue;
                     }
 
                     if (scrape_type.equalsIgnoreCase("LIVE")) {
                         try {
-                            WebElement scoure = driver.findElementByXPath("/html/body/div/div/div/div/div[1]/div/div/div[2]/div").findElement(By.className("sr-result"));
-                            String t1 = scoure.findElements(By.xpath("./*")).get(1).getAttribute("innerText");
-                            String t2 = scoure.findElements(By.xpath("./*")).get(2).getAttribute("innerText");
+//                            WebElement scoure = driver.findElementByXPath("/html/body/div/div/div/div/div[1]/div/div/div[2]/div").findElement(By.className("sr-result-box sr-result"));
+//                            String t1 = scoure.findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+//                            String t2 = scoure.findElements(By.xpath("./*")).get(2).getAttribute("innerText");
+                            Scoure teamScoures = new Scoure();
                             teamScoures.setMatch(matchModal);
-                            teamScoures.setOne(t1);
-                            teamScoures.setTwo(t2);
+                            teamScoures.setOne(liveScourTeam1);
+                            teamScoures.setTwo(liveScourTeam2);
                             teamScoures.setScrape(scrape);
+                            System.err.println(liveScourTeam1 + "==============+++++++++++++++++===========________________++++++++++++++++++++++===" + liveScourTeam2);
                             scoureRepo.save(teamScoures);
                         } catch (Exception t) {
                             t.printStackTrace();
