@@ -454,28 +454,26 @@ public class Scrape implements InitializingBean {
                 } catch (NoSuchElementException v) {
                     elements = driver.findElementByXPath("/html/body/div[4]/div[2]/div/div[1]/div/div/div").findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*"));
                 }
+
+                if (scrape_type.equalsIgnoreCase("LIVE")) {
+                    try {
+                        Scoure teamScoures = new Scoure();
+                        teamScoures.setMatch(matchModal);
+                        teamScoures.setOne(liveScourTeam1);
+                        teamScoures.setTwo(liveScourTeam2);
+                        teamScoures.setScrape(scrape);
+                        scoureRepo.save(teamScoures);
+                    } catch (Exception t) {
+                        t.printStackTrace();
+                    }
+                }
+
                 for (WebElement table : elements) {
 
                     if (!table.getAttribute("class").equalsIgnoreCase("box-container")) {
                         continue;
                     }
 
-                    if (scrape_type.equalsIgnoreCase("LIVE")) {
-                        try {
-//                            WebElement scoure = driver.findElementByXPath("/html/body/div/div/div/div/div[1]/div/div/div[2]/div").findElement(By.className("sr-result-box sr-result"));
-//                            String t1 = scoure.findElements(By.xpath("./*")).get(1).getAttribute("innerText");
-//                            String t2 = scoure.findElements(By.xpath("./*")).get(2).getAttribute("innerText");
-                            Scoure teamScoures = new Scoure();
-                            teamScoures.setMatch(matchModal);
-                            teamScoures.setOne(liveScourTeam1);
-                            teamScoures.setTwo(liveScourTeam2);
-                            teamScoures.setScrape(scrape);
-                            System.err.println(liveScourTeam1 + "==============+++++++++++++++++===========________________++++++++++++++++++++++===" + liveScourTeam2);
-                            scoureRepo.save(teamScoures);
-                        } catch (Exception t) {
-                            t.printStackTrace();
-                        }
-                    }
 
                     if (table.findElement(By.className("box-title")).getAttribute("innerText").equalsIgnoreCase("t/t match")) {
 
