@@ -252,6 +252,15 @@ public class Scrape implements InitializingBean {
         jse.executeScript("arguments[0].click();", live);
         Thread.sleep(10000);
         boolean found = false;
+
+        for (Match match : matchRepo.findAll()) {
+            if (match.getStatus().equalsIgnoreCase("PRE MATCH ENDED AND LIVE") || match.getStatus().equalsIgnoreCase("LIVE")) {
+                match.setStatus("LIVE ENDED");
+                matchRepo.save(match);
+            }
+        }
+
+
         for (WebElement sport : driver.findElementByXPath("/html/body/div[4]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul/div/ul").findElements(By.xpath("./*"))) {
             System.out.println(sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText") + "**");
             if (sport.findElement(By.tagName("a")).findElement(By.tagName("h2")).getAttribute("innerText").equalsIgnoreCase("Basket")) {
@@ -259,7 +268,6 @@ public class Scrape implements InitializingBean {
                 for (WebElement element : sport.findElements(By.xpath("./*")).get(1).findElements(By.xpath("./*"))) {
                     System.err.println(element.findElement(By.tagName("li")).findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText") + "=========================+++" + league);
                     if (element.findElement(By.tagName("li")).findElement(By.tagName("a")).findElement(By.tagName("h4")).getAttribute("innerText").equalsIgnoreCase(league)) {
-
                         jse.executeScript("arguments[0].click();", element.findElement(By.tagName("li")).findElement(By.tagName("a")));
                         Thread.sleep(5000);
 
@@ -370,7 +378,6 @@ public class Scrape implements InitializingBean {
         ComboMatchUltimoPunto comboMatchUltimoPunto = null;
 
 
-
         ScrapeMatch scrapeMatch = new ScrapeMatch();
         com.akvasoft.eurobet.modals.Scrape scrape = new com.akvasoft.eurobet.modals.Scrape();
         scrape.setTime(dtf.format(now));
@@ -391,19 +398,25 @@ public class Scrape implements InitializingBean {
         String team2 = matchTitle.split("-")[1].trim();
 
         matchModal = matchRepo.findTopByDateEqualsAndTimeEqualsAndOneEqualsAndTwoEquals(date, time, team1, team2);
+
         if (matchModal != null) {
             if (scrape_type.equalsIgnoreCase("LIVE") && matchModal.getStatus().equalsIgnoreCase("PRE MATCH")) {
-                matchModal.setStatus("PRE MATCH END");
+                matchModal.setStatus("PRE MATCH ENDED AND LIVE");
                 matchRepo.save(matchModal);
 
                 scrapeMatch.setMatch(matchModal);
                 scrapeMatch.setScrape(scrape);
                 scrapeMatchRepo.save(scrapeMatch);
-            } else {
-                status = "already scraped";
-                System.out.println("already scraped.. skipping");
-//                return true;
+
+            } else if (scrape_type.equalsIgnoreCase("LIVE") && matchModal.getStatus().equalsIgnoreCase("LIVE ENDED")) {
+                matchModal.setStatus("LIVE");
+                matchRepo.save(matchModal);
+
+                scrapeMatch.setMatch(matchModal);
+                scrapeMatch.setScrape(scrape);
+                scrapeMatchRepo.save(scrapeMatch);
             }
+
         } else {
 
             matchModal = new Match();
@@ -443,7 +456,6 @@ public class Scrape implements InitializingBean {
                 for (WebElement table : elements) {
 
                     if (!table.getAttribute("class").equalsIgnoreCase("box-container")) {
-                        System.err.println("==============+++++++++++++++++===========________________++++++++++++++++++++++===");
                         continue;
                     }
 
