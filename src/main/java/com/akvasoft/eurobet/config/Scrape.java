@@ -253,12 +253,12 @@ public class Scrape implements InitializingBean {
         Thread.sleep(10000);
         boolean found = false;
 
-        for (Match match : matchRepo.findAll()) {
-            if (match.getStatus().equalsIgnoreCase("PRE MATCH ENDED AND LIVE") || match.getStatus().equalsIgnoreCase("LIVE")) {
-                match.setStatus("LIVE ENDED");
-                matchRepo.save(match);
-            }
-        }
+//        for (Match match : matchRepo.findAll()) {
+//            if (match.getStatus().equalsIgnoreCase("PRE MATCH ENDED AND LIVE") || match.getStatus().equalsIgnoreCase("LIVE")) {
+//                match.setStatus("LIVE ENDED");
+//                matchRepo.save(match);
+//            }
+//        }
 
 
         for (WebElement sport : driver.findElementByXPath("/html/body/div[4]/div[1]/div/div/div/div[2]/div/div/div/div/div/ul/div/ul").findElements(By.xpath("./*"))) {
@@ -275,11 +275,7 @@ public class Scrape implements InitializingBean {
                             jse.executeScript("arguments[0].click();", li.findElement(By.className("match-row")).findElement(By.className("match")).findElement(By.tagName("a")));
                             Thread.sleep(1000);
                             try {
-                                liveScourTeam1 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(0).getAttribute("innerText");
-                                liveScourTeam2 = li.findElement(By.className("match-row")).findElements(By.xpath("./*")).get(2).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
                                 scrapeInnerTables(driver, "LIVE");
-                                liveScourTeam1 = "";
-                                liveScourTeam2 = "";
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -456,18 +452,26 @@ public class Scrape implements InitializingBean {
                 }
 
                 if (scrape_type.equalsIgnoreCase("LIVE")) {
+                    WebElement iframeWidgetBetradar = driver.findElementById("iframeWidgetBetradar");
+                    driver.switchTo().frame(iframeWidgetBetradar);
+                    Thread.sleep(2000);
+                    WebElement element = driver.findElementByTagName("body").findElement(By.className("lmts-wrapper")).findElement(By.tagName("div")).findElement(By.tagName("div"))
+                            .findElement(By.tagName("div")).findElements(By.xpath("./*")).get(0).findElement(By.className("sr-content"))
+                            .findElement(By.tagName("div")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("div")).findElement(By.className("sr-result"));
+                    System.err.println(element.findElements(By.xpath("./*")).get(1).getAttribute("innerText") + "=====================================HERE");
+                    System.err.println(element.findElements(By.xpath("./*")).get(2).getAttribute("innerText") + " =====================================HERE");
                     try {
                         Scoure teamScoures = new Scoure();
                         teamScoures.setMatch(matchModal);
-                        teamScoures.setOne(liveScourTeam1);
-                        teamScoures.setTwo(liveScourTeam2);
+                        teamScoures.setOne(element.findElements(By.xpath("./*")).get(1).getAttribute("innerText"));
+                        teamScoures.setTwo(element.findElements(By.xpath("./*")).get(2).getAttribute("innerText"));
                         teamScoures.setScrape(scrape);
                         scoureRepo.save(teamScoures);
                     } catch (Exception t) {
                         t.printStackTrace();
                     }
                 }
-
+                driver.switchTo().defaultContent();
                 for (WebElement table : elements) {
 
                     if (!table.getAttribute("class").equalsIgnoreCase("box-container")) {
